@@ -22,13 +22,10 @@ public class GenerateRpcInterface {
         new GenerateRpcInterface().generateRpcInterface();
     }
 
-    public GenerateRpcInterface() {
-
-    }
+    public GenerateRpcInterface() { }
 
     public void generateRpcInterface() throws Exception {
         Configuration freemarker = configureFreemarker();
-
 
         // Get JsonSchema stuff
         ObjectMapper mapper = new ObjectMapper();
@@ -78,9 +75,9 @@ public class GenerateRpcInterface {
         ftlMap.put("javaMethodDeclarations", declarations);
 
         // Apply Freemarker template; output the result
-        System.out.println("// == RpcInterface.java == ");
+        System.out.println("// == Rpc.java == ");
         Writer consoleWriter = new OutputStreamWriter(System.out);
-        freemarker.getTemplate("RpcInterface.java.ftl").process(ftlMap, consoleWriter);
+        freemarker.getTemplate("Rpc.java.ftl").process(ftlMap, consoleWriter);
     }
 
     private Configuration configureFreemarker() {

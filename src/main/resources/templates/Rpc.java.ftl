@@ -7,7 +7,7 @@
 
 package org.aion.api.server.rpc2.autogen;
 
-public interface RpcInterface {
+public interface Rpc {
 
 <#list javaMethodDeclarations as decl>
     ${decl.returnType} ${decl.methodName}(

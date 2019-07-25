@@ -20,14 +20,14 @@ public class RequestDeserializer {
     public static void main(String[] args) throws Exception {
         String payload = "{                                                                                                                                                                                                                   \n" +
                 "  \"method\": \"submitseed\",\n" +
-                "  \"params\": [\"0xfe00f212f0\", \"0xee\"],\n" +
+                "  \"params\": [\"0x1\", \"0xee\"],\n" +
                 "  \"id\": \"1\",\n" +
                 "  \"jsonrpc\": \"2.0\"\n" +
                 "}";
 
         JsonRpcRequest req = new RequestDeserializer(null).deserialize(payload);
 
-        System.out.println(req);
+        System.out.println(req.getParams());
     }
 
     public RequestDeserializer(JsonNode typesRoot) {
@@ -70,9 +70,9 @@ public class RequestDeserializer {
             } else if(expectedTypeSchema.get("$ref").asText().endsWith("DATA")) {
 
                 String nodeVal = paramNodes.get(ix).asText();
-                if (!nodeVal.startsWith("0x")) {
+                if (!nodeVal.startsWith("0x") || nodeVal.length() % 2 != 0) {
                     throw new IllegalArgumentException(String.format(
-                            "DATA needs to start with 0x (given: %s)", nodeVal));
+                            "DATA needs to start with 0x and be of even length (given: %s)", nodeVal));
                 }
 
                 nodeVal = nodeVal.replaceFirst("0x", "");
@@ -87,6 +87,9 @@ public class RequestDeserializer {
                 }
 
                 nodeVal = nodeVal.replaceFirst("0x", "");
+                if(nodeVal.length() % 2 != 0) {
+                    nodeVal = "0" + nodeVal;
+                }
                 reqParams[ix] = new BigInteger(hexStringToByteArray(nodeVal));
 
             } else {

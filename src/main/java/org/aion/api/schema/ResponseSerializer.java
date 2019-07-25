@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import java.io.IOException;
 import org.aion.api.envelope.JsonRpcResponse;
 
 import java.net.URL;
@@ -27,7 +28,7 @@ public class ResponseSerializer {
         this.typesRoot = typesRoot;
     }
 
-    public String serialize(JsonRpcResponse resp, String method) throws Exception {
+    public String serialize(JsonRpcResponse resp, String method) throws IOException {
         URL rezUrl = Resources.getResource("schemas/" + method + ".response.json");
         String rez = Resources.toString(rezUrl, Charsets.UTF_8);
         JsonNode rezRoot = om.readTree(rez);

@@ -9,7 +9,6 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import freemarker.template.Version;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
@@ -25,17 +24,12 @@ import org.aion.api.schema.JsonSchemaRef;
 import org.aion.api.schema.JsonSchemaTypeResolver;
 import org.aion.api.schema.ParamType;
 import org.aion.api.schema.SchemaException;
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.loader.SchemaClient;
-import org.everit.json.schema.loader.SchemaLoader;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 public class GenerateRpcProcessor {
 
     public static void main(String[] args) throws Exception {
         GenerateRpcProcessor generateRpcProcessor = new GenerateRpcProcessor();
-        System.out.println("=== RpcProcessor2.java ===");
+        System.out.println("// === RpcProcessor2.java ===");
         generateRpcProcessor.generateRpcProcessor2();
     }
 
@@ -124,18 +118,18 @@ public class GenerateRpcProcessor {
         return Arrays.asList(methodList);
     }
 
-    private Schema loadSchema(URL schemaUrl) throws IOException {
-        System.out.println("loadSchema: " + schemaUrl.toString());
-        try (InputStream inputStream = schemaUrl.openStream()) {
-            JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
-            SchemaLoader schemaLoader = SchemaLoader.builder()
-                .schemaClient(SchemaClient.classPathAwareClient())
-                .schemaJson(rawSchema)
-//                .resolutionScope("file:///home/sergiu/repos/AionRpc/CodeGen/src/main/resources/schemas/") // setting the default resolution scope
-                .resolutionScope("file:///home/sergiu/repos/AionRpc/CodeGen/src/main/resources/schemas/")
-                .build();
-            return schemaLoader.load().build(); // wtf
-        }
-    }
+//    private Schema loadSchema(URL schemaUrl) throws IOException {
+//        System.out.println("loadSchema: " + schemaUrl.toString());
+//        try (InputStream inputStream = schemaUrl.openStream()) {
+//            JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
+//            SchemaLoader schemaLoader = SchemaLoader.builder()
+//                .schemaClient(SchemaClient.classPathAwareClient())
+//                .schemaJson(rawSchema)
+////                .resolutionScope("file:///home/sergiu/repos/AionRpc/CodeGen/src/main/resources/schemas/") // setting the default resolution scope
+//                .resolutionScope("file:///home/sergiu/repos/AionRpc/CodeGen/src/main/resources/schemas/")
+//                .build();
+//            return schemaLoader.load().build(); // wtf
+//        }
+//    }
 
 }

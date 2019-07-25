@@ -12,6 +12,13 @@ This is under development, so pieces are moving around very often.  Its integrat
 - If you want to change the Java code that gets generated:
   1. Edit the FreeStyle templates: https://github.com/aionnetwork/AionRpc/tree/master/src/main/resources/templates
 
+## How to run the code generators
+
+- To generate Rpc.java: `./gradlew genRpcInterface`
+- To generate RpcProcessor.java: `./gradlew genRpcProcessor`
+- To generate both files: `./gradlew generateAll`
+
+
 ## What's supported / what's not
 
 Right now, param types and return types must be DATA, QUANTITY, or boolean.  

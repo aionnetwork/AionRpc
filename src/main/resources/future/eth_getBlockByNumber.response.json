@@ -1,0 +1,137 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+
+    "title": "eth_getBlockByNumber response",
+    "description": "Returns information about a block by block number.",
+
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "number", "hash", "parentHash", "nonce", "logsBloom", "transactionsRoot", "stateRoot", "receiptsRoot", "miner", "difficulty", "totalDifficulty", "extraData", "size", "nrgLimit", "nrgUsed", "gasLimit", "gasUsed", "timestamp", "transactions", "solution" 
+    ],
+    "properties": {
+        "number": {
+            "$ref": "../schemas/type.json#/definitions/QUANTITY",
+            "description": "the block number. null when it is pending block."
+        },
+        "hash": {
+            "$ref": "../schemas/type.json#/definitions/DATA32",
+            "description": "hash of the block. null when it is pending block."
+        },
+        "parentHash": {
+            "$ref": "../schemas/type.json#/definitions/DATA32",
+            "description": "hash of the parent block."
+        },
+        "nonce": {
+            "$ref": "../schemas/type.json#/definitions/DATA32",
+            "description": "nonce of the generated proof-of-work. null when it is pending block."
+        },
+        "logsBloom": {
+            "$ref": "../schemas/type.json#/definitions/DATA256",
+            "description": "the bloom filter for the logs of the block. null when it is pending block."
+        },
+        "transactionsRoot": {
+            "$ref": "../schemas/type.json#/definitions/DATA32",
+            "description": "the root of the transaction trie of the block."
+        },
+        "stateRoot": {
+            "$ref": "../schemas/type.json#/definitions/DATA32",
+            "description": "the root of the final state trie of the block."
+        },
+        "receiptsRoot": {
+            "$ref": "../schemas/type.json#/definitions/DATA32",
+            "description": "the root of the receipts trie of the block."
+        },
+        "miner": {
+            "$ref": "../schemas/type.json#/definitions/DATA32",
+            "description": "the address of the beneficiary to whom the mining rewards were given."
+        },
+        "difficulty": {
+            "$ref": "../schemas/type.json#/definitions/QUANTITY",
+            "description": "integer of the difficulty for this block."
+        },
+        "totalDifficulty": {
+            "$ref": "../schemas/type.json#/definitions/QUANTITY",
+            "description": "integer of the total difficulty of the chain until this block."
+        },
+        "extraData": {
+            "$ref": "../schemas/type.json#/definitions/DATA",
+            "description": "the \"extra data\" field of this block."
+        },
+        "size": {
+            "$ref": "../schemas/type.json#/definitions/QUANTITY",
+            "description": "integer the size of this block in bytes."
+        },
+        "nrgLimit": {
+            "$ref": "../schemas/type.json#/definitions/QUANTITY",
+            "description": "the maximum energy allowed in this block in nAmps."
+        },
+        "nrgUsed": {
+            "$ref": "../schemas/type.json#/definitions/QUANTITY",
+            "description": "the total used energy by all transactions in this block in nAmps."
+        },
+        "gasLimit": {
+            "$ref": "../schemas/type.json#/definitions/QUANTITY",
+            "description": "same as nrgLimit; duplicated for Ethereum-compatibility purposes."
+        },
+        "gasUsed": {
+            "$ref": "../schemas/type.json#/definitions/QUANTITY",
+            "description": "same as nrgUsed; duplicated for Ethereum-compatibility purposes."
+        },
+        "timestamp": {
+            "$ref": "../schemas/type.json#/definitions/QUANTITY",
+            "description": "the unix timestamp for when the block was collated, in seconds."
+        },
+        "transactions": {
+            "type": "array",
+            "description": "Array of transaction objects, or 32 Bytes transaction hashes depending on the last given parameter."
+        },
+        "solution": {
+            "$ref": "../schemas/type.json#/definitions/DATA",
+            "description": "solution for the generated proof-of-work."
+        }
+    },
+
+    "examples": [
+		{
+        "result": {
+        "number": "0x28cce9",
+        "hash": "0x8f8b3dd16c6c972d0910af4c50e13b4521966ff6d9909922bc1e366461b4fe52",
+        "parentHash": "0xc1e7987aedf107c81b663ce7d092251dddca6c5e2c37e07e2d937b7db0cc6108",
+        "nonce": "0x000000000000000000000000c001b43b00000000000000006437700000000000",
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000001000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000440000000000000000000000000000000000000000000000000000000000000001000000000000000",
+        "transactionsRoot": "0xcf105253fc2f325a908abd66cfb200f3dfb58f401c58751e64186af97d5202ac",
+        "stateRoot": "0x1dd00fa0fd6b1635e54dbee33d5ce19454bfb948d5027f5a989dfb4cd46fee99",
+        "receiptsRoot": "0x9417d2515d3656d3aaf316506bf8afcb740759de5d23cd6538ba8269486d88aa",
+        "miner": "0xa0f9f5d4925501974403b34226bbf01eceba58582719c5744f86880959c052d2",
+        "difficulty": "0x8a4214",
+        "totalDifficulty": "0x1d598faf9420",
+        "extraData": "0x4c55584f52000000000000000000000000000000000000000000000000000000",
+        "size": "0x84a",
+        "nrgLimit": "0xe4b058",
+        "nrgUsed": "0x7c1e",
+        "gasLimit": "0xe4b058",
+        "gasUsed": "0x7c1e",
+        "timestamp": "0x5c8c04f9",
+        "transactions": [
+          {
+            "nrgPrice": "0x4a817c800",
+            "nrg": "0x7c1e",
+            "transactionIndex": "0x0",
+            "nonce": "0xebb",
+            "input": "0x4178462f00000000000000000000000000000021",
+            "blockNumber": "0x28cce9",
+            "gas": "0x7c1e",
+            "from": "0xa0cfe4620faef3d35f8a842e361d228520f1697eec05b643b34293b88cca2aec",
+            "to": "0xa03c3dc1f9c3cc2a02155fde9ad33f80e2d0a3ea6216aba5b2d11962d25f27bf",
+            "value": "0x",
+            "hash": "0x8571465914fca68c39dfd127a3a429856fccc9e121ccfc276ced4f95f3331831",
+            "gasPrice": "0x4a817c800",
+            "timestamp": "0x5c8c04f9"
+          }
+        ],
+        "solution": "0x006521b29b... /* truncated for readability */ "}
+        }
+    ]
+}
+

@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+
+  "title": "getseed request parameters",
+  "description": "",
+
+  "type": "array",
+  "additionalItems": false,
+  "items": [
+  ],
+
+  "examples": [
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+
+  "title": "getseed request parameters",
+  "description": "",
+
+  "type": "array",
+  "additionalItems": false,
+  "items": [
+    {
+      "$ref": "type.json#/definitions/DATA",
+      "$comment": "Should create a DATA128 and use that instead, but RPC generator doesn't support it yet.",
+      "description": "128 hex decimal characters with 0x prefix seed of block (n+1)."
+    },
+    {
+      "$ref": "type.json#/definitions/DATA",
+      "$comment": "Should create a DATA128 and use that instead, but RPC generator doesn't support it yet.",
+      "description": "64 hex decimal characters with 0x prefix hash of block (n + 1) ."
+    }
+  ],
+
+  "examples": [
+  ]
+}

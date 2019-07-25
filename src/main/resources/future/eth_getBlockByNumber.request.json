@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+
+    "title": "eth_getBlockByNumber request parameters",
+    "description": "Returns information about a block by block number.",
+
+    "type": "array",
+    "additionalItems": false,
+    "items": [
+        { 
+            "oneOf": [
+                {"$ref": "../schemas/type.json#/definitions/TAG"},
+                {"$ref": "../schemas/type.json#/definitions/QUANTITY"}
+            ],
+            "description": "integer of a block number, or the string \"earliest\", \"latest\" or \"pending\", as in the default block parameter"
+        },
+        {
+            "type": "boolean",
+            "optional": "true",
+            "description": "If true it returns the full transaction objects, if false only the hashes of the transactions. If not provided, assumed to be false."
+        }
+    ],
+
+    "examples": [
+        [ "0x28cce9", "false" ]
+	]
+}

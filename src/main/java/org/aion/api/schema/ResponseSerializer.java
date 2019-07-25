@@ -37,7 +37,14 @@ public class ResponseSerializer {
         String jsonRetType = rezRoot.get("$ref").asText();
         // Handle the built-in json types DATA, QUANTITY
         if(jsonRetType.endsWith("DATA")|| jsonRetType.endsWith("QUANTITY")) {
-            return String.format("\"0x%s\"", bytesToHex( (byte[]) resp.getResult() ));
+            String resultJson = String.format("\"0x%s\"", bytesToHex( (byte[]) resp.getResult() ));
+            // TODO: Jackson it
+            return String.format("{"
+                + "\"jsonrpc\": \"%s\","
+                + "\"id\": \"%s\","
+                + "\"result\": %s"
+                + "}",
+                resp.getJsonrpc(), resp.getId(), resultJson);
         } else {
             throw new UnsupportedOperationException("Can only deserialize DATA and QUANTITY currently.");
         }

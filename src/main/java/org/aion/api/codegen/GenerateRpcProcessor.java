@@ -35,16 +35,11 @@ public class GenerateRpcProcessor {
 
     public static void main(String[] args) throws Exception {
         GenerateRpcProcessor generateRpcProcessor = new GenerateRpcProcessor();
-//        System.out.println("=== RpcProcessor2.java ===");
-//        generateRpcProcessor.generateRpcProcessor2();
-
         System.out.println("=== RpcProcessor2.java ===");
         generateRpcProcessor.generateRpcProcessor2();
     }
 
-    public GenerateRpcProcessor() {
-
-    }
+    public GenerateRpcProcessor() { }
 
     public void generateRpcProcessor2() throws IOException, TemplateException {
         ObjectMapper mapper = new ObjectMapper();
@@ -81,7 +76,6 @@ public class GenerateRpcProcessor {
             //TODO Asuming no multi-value types for now.
             javaMethodCalls.add(new JavaMethodCall(paramTypes, retType.javaTypes.get(0), method));
         }
-
 
 
         ftlMap.put("javaMethodCalls", javaMethodCalls);
@@ -137,7 +131,8 @@ public class GenerateRpcProcessor {
             SchemaLoader schemaLoader = SchemaLoader.builder()
                 .schemaClient(SchemaClient.classPathAwareClient())
                 .schemaJson(rawSchema)
-                .resolutionScope("file:///home/sergiu/repos/AionRpc/CodeGen/src/main/resources/schemas/") // setting the default resolution scope
+//                .resolutionScope("file:///home/sergiu/repos/AionRpc/CodeGen/src/main/resources/schemas/") // setting the default resolution scope
+                .resolutionScope("file:///home/sergiu/repos/AionRpc/CodeGen/src/main/resources/schemas/")
                 .build();
             return schemaLoader.load().build(); // wtf
         }

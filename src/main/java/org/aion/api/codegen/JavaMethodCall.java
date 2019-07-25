@@ -3,9 +3,9 @@ package org.aion.api.codegen;
 import java.util.List;
 
 public class JavaMethodCall {
-    private List<String> inputTypes;
-    private String outputType;
-    private String methodName;
+    private final List<String> inputTypes;
+    private final String outputType;
+    private final String methodName;
 
     public List<String> getInputTypes() {
         return inputTypes;

@@ -19,14 +19,14 @@ public class RpcProcessor2 extends AbstractRpcProcessor {
     public Object execute(JsonRpcRequest req) {
         Object[] params = req.getParams();
         switch(req.getMethod()) {
-        <#list javaMethodCalls as jmc>
+<#list javaMethodCalls as jmc>
             case "${jmc.methodName}":
                 return (${jmc.outputType}) rpc.${jmc.methodName}(
-        <#list jmc.inputTypes as paramType>
+<#list jmc.inputTypes as paramType>
                     (${paramType}) params[${paramType_index}]<#if (paramType_has_next)>,</#if>
-        </#list>
+</#list>
                 );
-        </#list>
+</#list>
             default: throw new UnsupportedOperationException("Not a valid method.");
         }
     }

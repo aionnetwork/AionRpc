@@ -26,9 +26,6 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-// Define the main class for the application
-mainClassName = 'App'
-
 dependencies {
     // This dependency is found on compile classpath of this component and consumers.
     compile 'com.google.guava:guava:23.0'
@@ -51,4 +48,17 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
+task(genRpcProcessor, dependsOn: 'classes', type: JavaExec) {
+   main = 'org.aion.api.codegen.GenerateRpcProcessor'
+   classpath = sourceSets.main.runtimeClasspath
+}
 
+task(genRpcInterface, dependsOn: 'classes', type: JavaExec) {
+   main = 'org.aion.api.codegen.GenerateRpcInterface'
+   classpath = sourceSets.main.runtimeClasspath
+}
+
+task generateAll {
+    dependsOn genRpcProcessor
+    dependsOn genRpcInterface
+}

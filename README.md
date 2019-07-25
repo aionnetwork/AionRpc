@@ -12,13 +12,18 @@ This is under development, so pieces are moving around very often.  Its integrat
 - If you want to change the Java code that gets generated:
   1. Edit the FreeStyle templates: https://github.com/aionnetwork/AionRpc/tree/master/src/main/resources/templates
 
-### What's supported
+## What's supported / what's not
 
-Right now, param types and return types must be DATA, QUANTITY, or boolean.
+Right now, param types and return types must be DATA, QUANTITY, or boolean.  
 
-### Coming soon
+## Coming soon
 
 - Using the JsonSchema `anyOf` keyword for typse
 - Defining (in the schema) custom non-container types derived from Javascript primitives or DATA or QUANTITY (to, for instance, create a type with length constraints)
 - Defining (in the schema) custom object types with specific fields
 - Better/more convenient integration of the ouputted code into the kernel
+
+## Resources
+
+- Apache FreeMarker, the templating engine: https://freemarker.apache.org/
+- JsonSchema, the schema format: https://json-schema.org/

@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
 
-  "title": "getseed response parameters",
-  "description": "",
+  "title": "submitseed response parameters",
+  "description": "new staking block pre-seal hash retun by the DATA type",
 
   "$ref": "type.json#/definitions/DATA",
   "examples": [

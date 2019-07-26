@@ -14,7 +14,7 @@ import java.util.Map;
  * purpose JsonSchema processing).  Only parts of JsonSchema spec that
  * were needed at the time are implemented (feel free to extend).
  *
- * Main method: {@link #resolve(JsonNode, Map)}
+ * Main method: {@link #resolve(JsonNode, JsonReferences)}
  */
 public class JsonSchemaTypeResolver {
 

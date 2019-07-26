@@ -7,8 +7,15 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Characterizes type information for a parameter in an RPC method, as defined by
- * a JsonSchema.  Also see {@link JsonSchemaTypeResolver}.
+ * Characterizes AionRpc type information for a parameter in an RPC method, as
+ * defined by a JsonSchema.  Contains all the information needed for:
+ *
+ * - naming the Java class or primitive corresponding to that AionRpc type
+ * - if the AionRpc type is an aggregate, how to construct and name a new Java class
+ *   to represent that AionRpc type.
+ *
+ * For context, see {@link JsonSchemaTypeResolver} and
+ * {@link JsonSchemaFixedMixedArrayResolver} for how this gets used.
  */
 public class ParamType {
     /** Kind of parameter; see {@link ParamType} */

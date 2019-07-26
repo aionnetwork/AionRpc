@@ -55,4 +55,8 @@ public class JsonReferences {
     public int size() {
         return refsVisited.size();
     }
+
+    public boolean isEmpty() {
+        return refsVisited.isEmpty();
+    }
 }

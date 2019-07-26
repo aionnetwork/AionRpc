@@ -22,9 +22,10 @@ public class JsonSchemaFixedMixedArrayResolver {
     }
 
     /**
+     * Parse a JsonNode containing JsonSchemas objects to extract the
+     * type information needed to
      *
-     *
-     * @param items
+     * @param items Json array containing JsonSchema objects
      * @param refsVisited
      * @return
      */

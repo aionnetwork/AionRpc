@@ -21,7 +21,14 @@ public class JsonSchemaFixedMixedArrayResolver {
         this.resolver = new JsonSchemaTypeResolver();
     }
 
-    public List<ParamType> resolve(JsonNode items, Map<String, JsonSchemaRef> refsVisited) {
+    /**
+     *
+     *
+     * @param items
+     * @param refsVisited
+     * @return
+     */
+    public List<ParamType> resolve(JsonNode items, JsonReferences refsVisited) {
         List<ParamType> paramTypes = new LinkedList<>();
 
         if(items == null || ! items.isArray()) {

@@ -15,7 +15,7 @@ public class ByteArrayInliner {
             "QUANTITY",     "java.math.BigInteger"
     );
 
-    private Map<String, JsonSchemaRef> refs;
+    private JsonReferences refs;
     private JsonNode types;
 
     /**
@@ -24,7 +24,7 @@ public class ByteArrayInliner {
      * @param loadedRefs type name to references to their definitions
      * @param typeDefinitions definitions
      */
-    public ByteArrayInliner(Map<String, JsonSchemaRef> loadedRefs,
+    public ByteArrayInliner(JsonReferences loadedRefs,
                             JsonNode typeDefinitions) {
         this.refs = loadedRefs;
         this.types = typeDefinitions;

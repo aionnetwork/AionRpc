@@ -9,8 +9,6 @@ import java.util.Objects;
 /**
  * Characterizes type information for a parameter in an RPC method, as defined by
  * a JsonSchema.  Also see {@link JsonSchemaTypeResolver}.
- *
- *
  */
 public class ParamType {
     /** Kind of parameter; see {@link ParamType} */
@@ -54,7 +52,7 @@ public class ParamType {
      * Any Java class mentioned in {@link #javaTypes} has an entry, mapping it to the
      * {@code $ref} value in the JsonSchema.
      */
-    public final Map<String, JsonSchemaRef> refs;
+    public final JsonReferences refs;
 
     /**
      * Construct a scalar without references
@@ -65,7 +63,7 @@ public class ParamType {
         this(ParamKind.SCALAR,
                 List.of(javaType),
                 List.of("value"),
-                Map.of());
+                new JsonReferences());
     }
 
     /**
@@ -78,7 +76,7 @@ public class ParamType {
                 ParamKind.SCALAR,
                 List.of(ref.getName()),
                 List.of("value"),
-                Map.of(ref.getName(), ref)
+                new JsonReferences(Map.of(ref.getName(), ref))
         );
     }
 
@@ -93,7 +91,7 @@ public class ParamType {
     public ParamType(ParamKind kind,
                      List<String> javaTypes,
                      List<String> javaNames,
-                     Map<String, JsonSchemaRef> refs) {
+                     JsonReferences refs) {
         if(javaTypes == null || javaTypes.isEmpty()) {
             throw new RuntimeException("Need at least one value in javaTypes");
         }
@@ -110,7 +108,7 @@ public class ParamType {
         this.kind = kind;
         this.javaTypes = new LinkedList<>(javaTypes);
         this.javaNames = javaNames == null ? List.of("value") : new LinkedList<>(javaNames);
-        this.refs = refs == null ? null : new HashMap<>(refs);
+        this.refs = refs;
 
     }
 

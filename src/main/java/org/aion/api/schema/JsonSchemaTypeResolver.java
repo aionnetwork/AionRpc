@@ -40,7 +40,7 @@ public class JsonSchemaTypeResolver {
      * @throws SchemaException if an invalid structure is encountered
      */
     public ParamType resolve(JsonNode schema,
-                             Map<String, JsonSchemaRef> refsVisited) {
+                             JsonReferences refsVisited) {
         if (schema.has("type")) {
             // item uses "type" -- look up what it needs to be
             String type = schema.get("type").asText();
@@ -73,7 +73,7 @@ public class JsonSchemaTypeResolver {
     }
 
     private ParamType resolveOneOf(JsonNode subschema,
-                                   Map<String, JsonSchemaRef> refsVisited) {
+                                   JsonReferences refsVisited) {
         // item uses "oneOf" -- need to traverse that
         JsonNode items = subschema.get("oneOf");
         List<String> itemTypes = new LinkedList<>();
@@ -94,7 +94,7 @@ public class JsonSchemaTypeResolver {
     }
 
     private ParamType resolveObject(JsonNode subschema,
-                                    Map<String, JsonSchemaRef> refsVisited) {
+                                    JsonReferences refsVisited) {
         JsonNode props = subschema.get("properties");
         List<String> propNames = new LinkedList<>();
 
@@ -123,7 +123,7 @@ public class JsonSchemaTypeResolver {
     }
 
     private ParamType resolveArray(JsonNode subschema,
-                                   Map<String, JsonSchemaRef> refsVisited) {
+                                   JsonReferences refsVisited) {
         JsonNode items = subschema.get("elements");
         List<String> itemTypes = new LinkedList<>();
 
@@ -148,7 +148,7 @@ public class JsonSchemaTypeResolver {
     }
 
     private ParamType resolveRef(JsonNode subschema,
-                                 Map<String, JsonSchemaRef> refsVisited) {
+                                 JsonReferences refsVisited) {
         // item uses "$ref" -- save the value into refsVisited
         // so it can be dereferenced at a later time
         JsonNode node = subschema.get("$ref");

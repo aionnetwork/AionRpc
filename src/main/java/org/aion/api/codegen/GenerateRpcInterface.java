@@ -33,7 +33,7 @@ public class GenerateRpcInterface {
         String types = Resources.toString(typesUrl, Charsets.UTF_8);
         JsonNode typesSchemaRoot = mapper.readTree(types);
 
-        Map<String, JsonSchemaRef> visitedRefs = new HashMap<>();
+        JsonReferences visitedRefs = new JsonReferences();
         List<String> methods = loadMethodList();
         ByteArrayInliner byteArrayInliner = new ByteArrayInliner(visitedRefs, typesSchemaRoot);
         List<JavaInterfaceMethodDeclaration> declarations = new LinkedList<>();

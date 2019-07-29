@@ -4,10 +4,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Objects;
 
 /**
- * Representation of a JsonSchema reference; i.e. the {@code $ref} keyword; {@see
- * https://json-schema.org/latest/json-schema-core.html#rfc.section.8.3}
+ * JsonSchema reference for an AionRpc type.  Not intended for general-purpose
+ * JsonSchema $ref or JsonPointer representation, but specific to how AionRpc
+ * uses it.
  *
- * Example: {@code type.json#/definitions/TAG}
+ * Example value: {@code type.json#/definitions/TAG}
+ *
+ * As per JsonSchema spec, the value is a URI.
+ *   - The part before the # is a file, given by {@link #getFile()}.
+ *   - The part after the # is called the fragment, given by {@link #getFragment()}.
+ *   - The last element in the fragment is assumed to the be the AionRpc type
+ *     name, given by {@link #getTypeName()}.
+ *
+ * @implNote Details on JsonSchema $ref keyword: {@see
+ * https://json-schema.org/latest/json-schema-core.html#rfc.section.8.3}.
  */
 public class JsonSchemaRef {
     private final String refValue;
@@ -26,31 +36,45 @@ public class JsonSchemaRef {
         return refValue.split("#")[0];
     }
 
-    /** @return the 'path' part of the ref value (after the #) */
-    public String[] getPath() {
-        return refValue.split("#")[1].split("/");
+    /** @return the 'fragment' part of the ref value (after the #) */
+    public String[] getFragment() {
+        if(refValue.contains("#")) {
+            return refValue.split("#")[1]
+                .replaceFirst("/", "")
+                .split("/");
+        } else {
+            return refValue.replaceFirst("/", "")
+                .split("/");
+        }
     }
 
-    /** @return the 'name' of the path */
-    public String getName() {
-        String[] parts = refValue.split("#")[1].split("/");
+    /**
+     * @return The AionRpc type name, which is defined to be the last element
+     * in {@link #getFragment()}.
+     */
+    public String getTypeName() {
+        String[] path = getFragment();
+        String[] parts = path[path.length - 1].split("/");
         return parts[parts.length - 1];
     }
 
     /**
-     * Follow the pointer of this reference to get the corresponding JSON node,
-     * starting from the given type definitions.
+     * Follow the fragment of this reference to get the corresponding JSON node,
+     * starting from the given type definitions.  File lookups are not supported
+     * right now -- the {@link #getFile()} portion of this reference is not used;
+     * it is assumed that the given typeDefinitionsRoot is the JSON Root that
+     * that file contains.
      *
      * @param typeDefinitionsRoot a JsonSchema with {@code definitions} field
      * @return the node that this reference points at
      */
-    public JsonNode dereference(JsonNode typeDefinitionsRoot) {
+    public JsonNode getDefinition(JsonNode typeDefinitionsRoot) {
         JsonNode deref = typeDefinitionsRoot;
         JsonNode lastDeref = null;
-        // start at 1 because 0 is the root node which we're already in
-        for(int ix = 1; ix < getPath().length; ++ix) {
+
+        for(int ix = 0; ix < getFragment().length; ++ix) {
             lastDeref = deref;
-            deref = deref.get(getPath()[ix]);
+            deref = deref.get(getFragment()[ix]);
             if(deref == null) {
                 throw new SchemaException("Broken reference at: " + lastDeref);
             }

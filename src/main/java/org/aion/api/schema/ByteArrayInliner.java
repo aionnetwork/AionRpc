@@ -15,7 +15,7 @@ public class ByteArrayInliner {
             "QUANTITY",     "java.math.BigInteger"
     );
 
-    private JsonReferences refs;
+    private TypeReferences refs;
     private JsonNode types;
 
     /**
@@ -24,7 +24,7 @@ public class ByteArrayInliner {
      * @param loadedRefs type name to references to their definitions
      * @param typeDefinitions definitions
      */
-    public ByteArrayInliner(JsonReferences loadedRefs,
+    public ByteArrayInliner(TypeReferences loadedRefs,
                             JsonNode typeDefinitions) {
         this.refs = loadedRefs;
         this.types = typeDefinitions;
@@ -54,7 +54,7 @@ public class ByteArrayInliner {
     }
 
     /**
-     * Dereference the $ref corresponding to typeName, then dereference
+     * Dereference the $ref corresponding to typeName, then getDefinition
      * the $ref of that type name, etc, until either:
      * <p>
      * 1) the end of the chain of references is reached -- return initial typeName
@@ -72,7 +72,7 @@ public class ByteArrayInliner {
         if (maybeRef == null) {
             return typeName;
         }
-        JsonNode definition = maybeRef.dereference(types);
+        JsonNode definition = maybeRef.getDefinition(types);
 
         // if this one defined in terms of another $ref,
         // check if that one can be simplified
@@ -80,8 +80,8 @@ public class ByteArrayInliner {
             JsonNode next = definition.get("$ref");
             maybeRef = new JsonSchemaRef(next.asText());
 
-            if (REPLACEMENTS.containsKey((maybeRef.getName()))) {
-                return REPLACEMENTS.get(maybeRef.getName());
+            if (REPLACEMENTS.containsKey((maybeRef.getTypeName()))) {
+                return REPLACEMENTS.get(maybeRef.getTypeName());
             }
         }
 

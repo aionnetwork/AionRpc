@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Similar to {@link JsonSchemaTypeResolver}, but specialized for a specific purpose:
@@ -29,7 +28,7 @@ public class JsonSchemaFixedMixedArrayResolver {
      * @param refsVisited
      * @return
      */
-    public List<ParamType> resolve(JsonNode items, JsonReferences refsVisited) {
+    public List<ParamType> resolve(JsonNode items, TypeReferences refsVisited) {
         List<ParamType> paramTypes = new LinkedList<>();
 
         if(items == null || ! items.isArray()) {

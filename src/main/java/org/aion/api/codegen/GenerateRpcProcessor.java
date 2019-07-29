@@ -20,8 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import org.aion.api.schema.ByteArrayInliner;
-import org.aion.api.schema.JsonReferences;
-import org.aion.api.schema.JsonSchemaRef;
+import org.aion.api.schema.TypeReferences;
 import org.aion.api.schema.JsonSchemaTypeResolver;
 import org.aion.api.schema.ParamType;
 import org.aion.api.schema.SchemaException;
@@ -44,7 +43,7 @@ public class GenerateRpcProcessor {
         String types = Resources.toString(typesUrl, Charsets.UTF_8);
         JsonNode typesSchemaRoot = mapper.readTree(types);
 
-        JsonReferences visitedRefs = new JsonReferences();
+        TypeReferences visitedRefs = new TypeReferences();
         JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
         ByteArrayInliner byteArrayInliner = new ByteArrayInliner(visitedRefs, typesSchemaRoot);
 
@@ -80,7 +79,7 @@ public class GenerateRpcProcessor {
     }
 
     private List<String> resolveParamTypes(JsonNode requestSchema,
-                                          JsonReferences refsVisited,
+                                          TypeReferences refsVisited,
                                           JsonSchemaTypeResolver resolver,
                                           ByteArrayInliner byteArrayInliner) {
         // process each parameter in the param list using the JsonSchemaTypeResolver.

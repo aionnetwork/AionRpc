@@ -6,7 +6,6 @@ import static org.junit.Assert.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
-import java.nio.file.Path;
 import org.aion.api.schema.ParamType.ParamKind;
 import org.junit.Test;
 
@@ -18,7 +17,7 @@ public class JsonSchemaTypeResolverTest {
     @Test
     public void resolveString() throws Exception {
         JsonNode schema = om.readTree("{\"type\":\"string\"}");
-        JsonReferences refs = new JsonReferences();
+        TypeReferences refs = new TypeReferences();
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
 
         ParamType result = unit.resolve(schema, refs);
@@ -32,7 +31,7 @@ public class JsonSchemaTypeResolverTest {
     @Test
     public void resolveBoolean() throws Exception {
         JsonNode schema = om.readTree("{\"type\":\"boolean\"}");
-        JsonReferences refs = new JsonReferences();
+        TypeReferences refs = new TypeReferences();
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
 
         ParamType result = unit.resolve(schema, refs);
@@ -47,7 +46,7 @@ public class JsonSchemaTypeResolverTest {
     @Test(expected = UnsupportedOperationException.class)
     public void resolveNumber() throws Exception {
         JsonNode schema = om.readTree("{\"type\":\"number\"}");
-        JsonReferences refs = new JsonReferences();
+        TypeReferences refs = new TypeReferences();
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
         unit.resolve(schema, refs);
     }
@@ -55,7 +54,7 @@ public class JsonSchemaTypeResolverTest {
     // -- Json-schema keywords ----------------------------------------------------------
     @Test
     public void resolveRef() throws Exception {
-        JsonReferences refs = new JsonReferences();
+        TypeReferences refs = new TypeReferences();
         JsonNode schema = om.readTree("{\"$ref\":\"types.json#/definitions/DATA\"}");
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
         ParamType result = unit.resolve(schema, refs);
@@ -66,7 +65,7 @@ public class JsonSchemaTypeResolverTest {
         assertThat(result.isCollection(), is(false));
         assertThat(result.kind, is(ParamKind.SCALAR));
         assertThat(result.refs.size(), is(1));
-        assertThat(result.refs.get("DATA").getName(), is("DATA"));
+        assertThat(result.refs.get("DATA").getTypeName(), is("DATA"));
         assertThat(result.refs.get("DATA").getValue(), is("types.json#/definitions/DATA"));
 
         // is refs output even needed?

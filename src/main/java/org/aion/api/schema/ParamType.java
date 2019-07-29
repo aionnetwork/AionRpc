@@ -1,6 +1,5 @@
 package org.aion.api.schema;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +58,7 @@ public class ParamType {
      * Any Java class mentioned in {@link #javaTypes} has an entry, mapping it to the
      * {@code $ref} value in the JsonSchema.
      */
-    public final JsonReferences refs;
+    public final TypeReferences refs;
 
     /**
      * Construct a scalar without references
@@ -70,7 +69,7 @@ public class ParamType {
         this(ParamKind.SCALAR,
                 List.of(javaType),
                 List.of("value"),
-                new JsonReferences());
+                new TypeReferences());
     }
 
     /**
@@ -81,9 +80,9 @@ public class ParamType {
     public ParamType(JsonSchemaRef ref) {
         this(
                 ParamKind.SCALAR,
-                List.of(ref.getName()),
+                List.of(ref.getTypeName()),
                 List.of("value"),
-                new JsonReferences(Map.of(ref.getName(), ref))
+                new TypeReferences(Map.of(ref.getTypeName(), ref))
         );
     }
 
@@ -98,7 +97,7 @@ public class ParamType {
     public ParamType(ParamKind kind,
                      List<String> javaTypes,
                      List<String> javaNames,
-                     JsonReferences refs) {
+                     TypeReferences refs) {
         if(javaTypes == null || javaTypes.isEmpty()) {
             throw new RuntimeException("Need at least one value in javaTypes");
         }

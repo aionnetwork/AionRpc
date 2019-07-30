@@ -9,9 +9,14 @@ import java.io.IOException;
 import java.net.URL;
 
 public class Utils {
-    // borrowed from
+    // adapted from
     // https://stackoverflow.com/questions/140131/convert-a-string-representation-of-a-hex-dump-to-a-byte-array-using-java
     public static byte[] hexStringToByteArray(String s) {
+        if(! s.startsWith("0x")) {
+            throw new IllegalArgumentException(
+                "Expecting the hex string to start with \"0x\"");
+        }
+        s = s.replaceFirst("0x", "");
         int len = s.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {

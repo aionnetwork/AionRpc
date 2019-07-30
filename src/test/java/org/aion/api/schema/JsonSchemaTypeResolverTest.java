@@ -111,7 +111,7 @@ public class JsonSchemaTypeResolverTest {
         // as AION_RPC_ROOT/src/test.  Loading the file this way because loading
         // test resources doesn't seem to work...
         JsonNode schema = om.readTree(new File(
-                "src/test/resources/test-schemas/object-with-mixed-props.json"));
+                "src/test/resources/test-schemas/object-with-quantity-data-boolean.json"));
 
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
         ParamType result = unit.resolve(schema, new TypeReferences());

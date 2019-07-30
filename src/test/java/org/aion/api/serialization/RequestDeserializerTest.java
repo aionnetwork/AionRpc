@@ -6,6 +6,8 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.math.BigInteger;
 import java.net.URL;
+import org.aion.api.schema.JsonSchemaTypeResolver;
+import org.aion.api.schema.SchemaValidator;
 import org.junit.Test;
 
 import static org.hamcrest.core.Is.is;
@@ -15,7 +17,9 @@ import static org.mockito.Mockito.when;
 
 public class RequestDeserializerTest {
     private final ObjectMapper om = new ObjectMapper();
-    private RpcMethodSchemaLoader schemaLoader = mock(RpcMethodSchemaLoader.class);
+    private RpcMethodSchemaLoader schemaLoader = mock(
+        RpcMethodSchemaLoader.class);
+    private SchemaValidator validator = new SchemaValidator();
     private final JsonNode typesSchemaRoot;
 
     public RequestDeserializerTest() throws Exception {
@@ -44,7 +48,11 @@ public class RequestDeserializerTest {
             "  \"id\": \"1\",\n" +
             "  \"jsonrpc\": \"2.0\"\n" +
             "}";
-        RequestDeserializer unit = new RequestDeserializer(typesSchemaRoot, schemaLoader);
+        RequestDeserializer unit = new RequestDeserializer(
+            om,
+            typesSchemaRoot,
+            schemaLoader,
+            validator);
         JsonRpcRequest result = unit.deserialize(payload);
 
         assertThat(result.getMethod(), is("testMethod"));

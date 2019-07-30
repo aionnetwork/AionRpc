@@ -12,24 +12,42 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URL;
 import java.util.List;
+import org.aion.api.schema.SchemaValidator;
 
 import static org.aion.api.serialization.Utils.hexStringToByteArray;
 
 public class RequestDeserializer {
-    private final ObjectMapper om = new ObjectMapper();
-    private final JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
-    private final JsonNode typesRoot; // not used yet, will be needed when types other than DATA,QUANTITY are added
+    private final ObjectMapper om;
+    private final JsonSchemaTypeResolver resolver;
+    private final JsonNode typesRoot;
     private final RpcMethodSchemaLoader schemaLoader;
+    private final SchemaValidator validator;
 
+    /**
+     *
+     *
+     * @param typesRoot Root of a JSON schema structure that is a valid JsonSchema.
+     * Expected to contain an object named {@code definitions} that contains
+     * subschemas of all types that will be referenced (via JsonSchema keyword "$ref").
+     */
     public RequestDeserializer(JsonNode typesRoot) {
-        this(typesRoot, new RpcMethodSchemaLoader());
+        this(new ObjectMapper(),
+            typesRoot,
+            new RpcMethodSchemaLoader(),
+            new SchemaValidator()
+        );
     }
 
     @VisibleForTesting
-    RequestDeserializer(JsonNode typesRoot,
-                        RpcMethodSchemaLoader schemaLoader) {
+    RequestDeserializer(ObjectMapper om,
+                        JsonNode typesRoot,
+                        RpcMethodSchemaLoader schemaLoader,
+                        SchemaValidator validator) {
+        this.om = om;
+        this.resolver = new JsonSchemaTypeResolver();
         this.typesRoot = typesRoot;
         this.schemaLoader = schemaLoader;
+        this.validator = validator;
     }
 
     /**
@@ -66,34 +84,31 @@ public class RequestDeserializer {
 
         for(int ix = 0; ix < paramNodes.size(); ++ix) {
             // TODO: only works with DATA and QUANTITY right now
-            // TODO: add validator -- it just assumes the input is correct right now
             JsonNode expectedTypeSchema = schemaParamNodes.get(ix);
+
+            // Check this param value against the schema for the param
+            if(! validator.validate(expectedTypeSchema, paramNodes.get(ix))) {
+                throw new IllegalArgumentException(
+                    String.format("Schema validation error at parameter '%s'",
+                        paramNodes.get(ix).toString()));
+            }
 
             if(expectedTypeSchema.has("type")
                 && expectedTypeSchema.get("type").asText().equals("boolean")) {
+
                 reqParams[ix] = paramNodes.get(ix).asBoolean();
+
             } else if(expectedTypeSchema.get("$ref").asText().endsWith("DATA")) {
 
                 String nodeVal = paramNodes.get(ix).asText();
-                if (!nodeVal.startsWith("0x") || nodeVal.length() % 2 != 0) {
-                    throw new IllegalArgumentException(String.format(
-                            "DATA needs to start with 0x and be of even length (given: %s)", nodeVal));
-                }
-
-                nodeVal = nodeVal.replaceFirst("0x", "");
                 reqParams[ix] = hexStringToByteArray(nodeVal);
 
             } else if(expectedTypeSchema.get("$ref").asText().endsWith("QUANTITY")) {
 
                 String nodeVal = paramNodes.get(ix).asText();
-                if (!nodeVal.startsWith("0x")) {
-                    throw new IllegalArgumentException(String.format(
-                            " QUANTITY needs to start with 0x (given: %s)", nodeVal));
-                }
-
-                nodeVal = nodeVal.replaceFirst("0x", "");
+                // need to pad it to even-length so it may be converted to byte[]
                 if(nodeVal.length() % 2 != 0) {
-                    nodeVal = "0" + nodeVal;
+                    nodeVal = nodeVal.replaceFirst("0x", "0x0");
                 }
                 reqParams[ix] = new BigInteger(hexStringToByteArray(nodeVal));
 

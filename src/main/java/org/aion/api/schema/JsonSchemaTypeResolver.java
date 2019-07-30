@@ -51,8 +51,7 @@ public class JsonSchemaTypeResolver {
                     return new ParamType("boolean");
                 case "object":
                     return resolveObject(schema, refsVisited);
-                case "array":
-                    return resolveArray(schema, refsVisited);
+                case "array": // not supported yet
                 case "number": // not supporting number for now, not used anyway
                 default:
                     throw new UnsupportedOperationException(
@@ -96,6 +95,10 @@ public class JsonSchemaTypeResolver {
     private ParamType resolveObject(JsonNode subschema,
                                     TypeReferences refsVisited) {
         JsonNode props = subschema.get("properties");
+        if(props == null) {
+            throw new IllegalArgumentException(
+                    "Schemas derived from object must define its properties");
+        }
         List<String> propNames = new LinkedList<>();
 
         // since we know that we never want object to contain
@@ -109,7 +112,7 @@ public class JsonSchemaTypeResolver {
 
 //            if(propType.isCollection()) {
             if(propType.kind == ParamType.ParamKind.OBJECT) {
-                throw new RuntimeException("Object properties must be scalar.  " +
+                throw new IllegalArgumentException("Object properties must be scalar.  " +
                         "If your object needs to hold another container, hold a $ref " +
                         "instead and define it to have the schema of your container.  " +
                         "Was trying to resolve: " + propType.toString());
@@ -122,30 +125,30 @@ public class JsonSchemaTypeResolver {
             ParamType.ParamKind.OBJECT, propTypes, propNames, refsVisited);
     }
 
-    private ParamType resolveArray(JsonNode subschema,
-                                   TypeReferences refsVisited) {
-        JsonNode items = subschema.get("elements");
-        List<String> itemTypes = new LinkedList<>();
-
-        if(items == null) {
-            itemTypes.add("java.lang.Object[]");
-        } else {
-            for (Iterator<JsonNode> iter = items.elements(); iter.hasNext(); ) {
-                JsonNode node = iter.next();
-                ParamType paramType = resolve(node, refsVisited);
-
-                if (paramType.isCollection()) {
-                    throw new RuntimeException("Object properties must be scalar.  " +
-                            "If your object needs to hold another container, hold a $ref " +
-                            "instead and define it to have the schema of your container." +
-                            "  Can't add:" + paramType);
-                }
-                itemTypes.add(paramType.javaNames.get(0));
-            }
-        }
-        return new ParamType(
-            ParamType.ParamKind.ARRAY, itemTypes, null, refsVisited);
-    }
+//    private ParamType resolveArray(JsonNode subschema,
+//                                   TypeReferences refsVisited) {
+//        JsonNode items = subschema.get("elements");
+//        List<String> itemTypes = new LinkedList<>();
+//
+//        if(items == null) {
+//            itemTypes.add("java.lang.Object[]");
+//        } else {
+//            for (Iterator<JsonNode> iter = items.elements(); iter.hasNext(); ) {
+//                JsonNode node = iter.next();
+//                ParamType paramType = resolve(node, refsVisited);
+//
+//                if (paramType.isCollection()) {
+//                    throw new RuntimeException("Object properties must be scalar.  " +
+//                            "If your object needs to hold another container, hold a $ref " +
+//                            "instead and define it to have the schema of your container." +
+//                            "  Can't add:" + paramType);
+//                }
+//                itemTypes.add(paramType.javaNames.get(0));
+//            }
+//        }
+//        return new ParamType(
+//            ParamType.ParamKind.ARRAY, itemTypes, null, refsVisited);
+//    }
 
     private ParamType resolveRef(JsonNode subschema,
                                  TypeReferences refsVisited) {
@@ -164,16 +167,7 @@ public class JsonSchemaTypeResolver {
 //            return new ParamType("byte[]");
 //        }
 
-        JsonSchemaRef maybeExistingRef = refsVisited.get(ref.getTypeName());
-        if (maybeExistingRef == null) {
-            refsVisited.put(ref);
-        } else if (! ref.equals(maybeExistingRef)) {
-            throw new IllegalArgumentException(String.format(
-                    "Can't use java type name '%s' for ref '%s' because it was already used for '%s'.  "
-                            + "Each Json Schema type name must be unique, even if it's in different files.",
-                    ref.getTypeName(), maybeExistingRef.toString(), ref.toString()));
-        } // else: nothing to do -- it's already there
-
+        refsVisited.put(ref);
         return new ParamType(ref);
     }
 }

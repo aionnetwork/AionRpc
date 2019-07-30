@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "type": "object",
+  "properties": {
+    "myQuantityField": {
+      "$ref": "type.json#/definitions/QUANTITY"
+    },
+    "myDataField": {
+      "$ref": "type.json#/definitions/DATA"
+    },
+    "myBooleanField": {
+      "type": "boolean"
+    }
+  }
+}

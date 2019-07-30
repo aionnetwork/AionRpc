@@ -8,6 +8,7 @@ public class RequestDeserializerTest {
 
     @Test
     public void test() throws Exception {
+        //TODO
         String payload = "{                                                                                                                                                                                                                   \n" +
                 "  \"method\": \"submitseed\",\n" +
                 "  \"params\": [\"0x10\", \"0xee\"],\n" +

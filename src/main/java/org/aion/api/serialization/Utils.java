@@ -1,5 +1,13 @@
 package org.aion.api.serialization;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+
+import java.io.IOException;
+import java.net.URL;
+
 public class Utils {
     // borrowed from
     // https://stackoverflow.com/questions/140131/convert-a-string-representation-of-a-hex-dump-to-a-byte-array-using-java
@@ -24,5 +32,12 @@ public class Utils {
             hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
         }
         return new String(hexChars);
+    }
+
+    public static JsonNode loadSchema(ObjectMapper om, String resource)
+    throws IOException {
+        URL url = Resources.getResource(resource);
+        String schemaTxt = Resources.toString(url, Charsets.UTF_8);
+        return om.readTree(schemaTxt);
     }
 }

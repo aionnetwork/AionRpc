@@ -19,19 +19,6 @@ public class RequestDeserializer {
     private final JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
     private final JsonNode typesRoot; // not used yet, will be needed when types other than DATA,QUANTITY are added
 
-    public static void main(String[] args) throws Exception {
-        String payload = "{                                                                                                                                                                                                                   \n" +
-                "  \"method\": \"submitseed\",\n" +
-                "  \"params\": [\"0x10\", \"0xee\"],\n" +
-                "  \"id\": \"1\",\n" +
-                "  \"jsonrpc\": \"2.0\"\n" +
-                "}";
-
-        JsonRpcRequest req = new RequestDeserializer(null).deserialize(payload);
-
-        System.out.println(req.getParams());
-    }
-
     public RequestDeserializer(JsonNode typesRoot) {
         this.typesRoot = typesRoot;
     }

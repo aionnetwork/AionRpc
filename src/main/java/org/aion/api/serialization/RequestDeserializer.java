@@ -1,11 +1,11 @@
-package org.aion.api.schema;
+package org.aion.api.serialization;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
-import org.aion.api.envelope.JsonRpcRequest;
+import org.aion.api.schema.JsonSchemaTypeResolver;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -20,7 +20,7 @@ public class RequestDeserializer {
     public static void main(String[] args) throws Exception {
         String payload = "{                                                                                                                                                                                                                   \n" +
                 "  \"method\": \"submitseed\",\n" +
-                "  \"params\": [\"0x1\", \"0xee\"],\n" +
+                "  \"params\": [\"0x10\", \"0xee\"],\n" +
                 "  \"id\": \"1\",\n" +
                 "  \"jsonrpc\": \"2.0\"\n" +
                 "}";

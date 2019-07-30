@@ -1,4 +1,4 @@
-package org.aion.api.envelope;
+package org.aion.api.serialization;
 
 public class JsonRpcResponse {
     private final Object result;

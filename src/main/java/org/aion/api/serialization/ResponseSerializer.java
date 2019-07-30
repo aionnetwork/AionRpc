@@ -1,11 +1,12 @@
-package org.aion.api.schema;
+package org.aion.api.serialization;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import java.io.IOException;
-import org.aion.api.envelope.JsonRpcResponse;
+
+import org.aion.api.schema.JsonSchemaTypeResolver;
 
 import java.net.URL;
 

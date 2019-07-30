@@ -35,7 +35,7 @@ public class Utils {
     }
 
     public static JsonNode loadSchema(ObjectMapper om, String resource)
-    throws IOException {
+        throws IOException {
         URL url = Resources.getResource(resource);
         String schemaTxt = Resources.toString(url, Charsets.UTF_8);
         return om.readTree(schemaTxt);

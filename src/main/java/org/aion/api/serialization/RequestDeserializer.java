@@ -2,6 +2,7 @@ package org.aion.api.serialization;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
@@ -18,16 +19,31 @@ public class RequestDeserializer {
     private final ObjectMapper om = new ObjectMapper();
     private final JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
     private final JsonNode typesRoot; // not used yet, will be needed when types other than DATA,QUANTITY are added
+    private final RpcMethodSchemaLoader schemaLoader;
 
     public RequestDeserializer(JsonNode typesRoot) {
-        this.typesRoot = typesRoot;
+        this(typesRoot, new RpcMethodSchemaLoader());
     }
 
+    @VisibleForTesting
+    RequestDeserializer(JsonNode typesRoot,
+                        RpcMethodSchemaLoader schemaLoader) {
+        this.typesRoot = typesRoot;
+        this.schemaLoader = schemaLoader;
+    }
+
+    /**
+     * Deserialize a String of the JSON of a JsonRpc method call into a
+     * Java representation.
+     *
+     * @param payload JSON representation of the JsonRpc method call
+     * @return Java representation of the payload
+     * @throws IOException if schema for the method name in the call can't be loaded
+     */
     public JsonRpcRequest deserialize(String payload) throws IOException  {
         // note to self -- needs to get called by AbstractRpcServer in the kernel.  which will
         // need to look at the request schema so it can cast the params array correctly
         JsonRpcRequest req = om.readValue(payload, JsonRpcRequest.class);
-
 
         JsonNode payloadRoot = om.readTree(payload);
         JsonNode params = payloadRoot.get("params");
@@ -35,9 +51,8 @@ public class RequestDeserializer {
             throw new IllegalArgumentException("Params array missing from request.");
         }
 
-        URL rezUrl = Resources.getResource("schemas/" + payloadRoot.get("method").asText() + ".request.json");
-        String rez = Resources.toString(rezUrl, Charsets.UTF_8);
-        JsonNode rezRoot = om.readTree(rez);
+        String method = payloadRoot.get("method").asText();
+        JsonNode rezRoot = schemaLoader.loadRequestSchema(method);
 
         List<JsonNode> schemaParamNodes = Lists.newArrayList(rezRoot.get("items").elements());
         List<JsonNode> paramNodes = Lists.newArrayList(params.elements());
@@ -54,7 +69,8 @@ public class RequestDeserializer {
             // TODO: add validator -- it just assumes the input is correct right now
             JsonNode expectedTypeSchema = schemaParamNodes.get(ix);
 
-            if(expectedTypeSchema.isBoolean()) {
+            if(expectedTypeSchema.has("type")
+                && expectedTypeSchema.get("type").asText().equals("boolean")) {
                 reqParams[ix] = paramNodes.get(ix).asBoolean();
             } else if(expectedTypeSchema.get("$ref").asText().endsWith("DATA")) {
 

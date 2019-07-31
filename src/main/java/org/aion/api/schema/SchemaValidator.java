@@ -78,7 +78,7 @@ public class SchemaValidator {
             case OBJECT:
                 // the validator treats Java objects as Javascript objects
                 // i.e. matches schema {"type": "object"}
-                // TODO: double check this conversion makes sense for all cases
+                // TODO: double check that this conversion makes sense for all cases
                 inputObj = om.treeToValue(input, JSONObject.class);
                 break;
             case ARRAY: // not yet supported

@@ -88,22 +88,4 @@ public class ParamArrayParser {
             }
         }
     }
-
-
-    // --- temporary stuff
-
-    public void match() throws Exception {
-        URL typesUrl = Resources.getResource("schemas/type.json");
-        URL reqUrl = Resources.getResource("future/eth_getBlockByNumber.request.json");
-//        String types =
-//        String req = Resources.toString(reqUrl, Charsets.UTF_8);
-
-        try (InputStream inputStream = typesUrl.openStream()) {
-            JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
-            Schema schema = SchemaLoader.load(rawSchema.getJSONObject("definitions").getJSONObject("DATA"));
-//            schema.validate(new JSONObject("{\"hello\" : \"world\"}")); // throws a ValidationException if this object is invalid
-
-            schema.validate("0xfff"); // throws a ValidationException if this object is invalid
-        }
-    }
 }

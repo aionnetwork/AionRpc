@@ -19,11 +19,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import org.aion.api.schema.ByteArrayInliner;
-import org.aion.api.schema.TypeReferences;
 import org.aion.api.schema.JsonSchemaTypeResolver;
-import org.aion.api.schema.ParamType;
+import org.aion.api.schema.RpcType;
 import org.aion.api.schema.SchemaException;
+import org.aion.api.schema.TypeRegistry;
 
 public class GenerateRpcProcessor {
 
@@ -43,9 +42,8 @@ public class GenerateRpcProcessor {
         String types = Resources.toString(typesUrl, Charsets.UTF_8);
         JsonNode typesSchemaRoot = mapper.readTree(types);
 
-        TypeReferences visitedRefs = new TypeReferences();
+        TypeRegistry visitedRefs = new TypeRegistry();
         JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
-        ByteArrayInliner byteArrayInliner = new ByteArrayInliner(visitedRefs, typesSchemaRoot);
 
         Configuration freemarker = configureFreemarker();
 
@@ -63,12 +61,11 @@ public class GenerateRpcProcessor {
             JsonNode rezRoot = new ObjectMapper().readTree(rez);
 
             List<String> paramTypes = resolveParamTypes(
-                reqRoot, visitedRefs, resolver, byteArrayInliner);
-            ParamType retType = byteArrayInliner.inline(
-                resolver.resolve(rezRoot, visitedRefs));
+                reqRoot, visitedRefs, resolver);
+            RpcType retType = resolver.resolveSchema(rezRoot, visitedRefs);
 
             //TODO Asuming no multi-value types for now.
-            javaMethodCalls.add(new JavaMethodCall(paramTypes, retType.javaTypes.get(0), method));
+            javaMethodCalls.add(new JavaMethodCall(paramTypes, retType.getJavaTypeNames().get(0), method));
         }
 
 
@@ -79,9 +76,8 @@ public class GenerateRpcProcessor {
     }
 
     private List<String> resolveParamTypes(JsonNode requestSchema,
-                                          TypeReferences refsVisited,
-                                          JsonSchemaTypeResolver resolver,
-                                          ByteArrayInliner byteArrayInliner) {
+                                          TypeRegistry refsVisited,
+                                          JsonSchemaTypeResolver resolver) {
         // process each parameter in the param list using the JsonSchemaTypeResolver.
         // the top-level schema for the request itself can't use the resolver though,
         // because of its restriction on arrays.  so, handle the array manually.
@@ -94,8 +90,8 @@ public class GenerateRpcProcessor {
         }
         for(Iterator<JsonNode> it = items.elements(); it.hasNext(); ) {
             JsonNode param = it.next();
-            ParamType t = byteArrayInliner.inline(resolver.resolve(param, refsVisited));
-            paramTypes.add(t.javaTypes.get(0)); // TODO Assuming no multi-value types for now.
+            RpcType t = resolver.resolveSchema(param, refsVisited);
+            paramTypes.add(t.getJavaTypeNames().get(0)); // TODO Assuming no multi-value types for now.
         }
 
         return paramTypes;
@@ -117,19 +113,5 @@ public class GenerateRpcProcessor {
         String[] methodList = methods.split("\n");
         return Arrays.asList(methodList);
     }
-
-//    private Schema loadSchema(URL schemaUrl) throws IOException {
-//        System.out.println("loadSchema: " + schemaUrl.toString());
-//        try (InputStream inputStream = schemaUrl.openStream()) {
-//            JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
-//            SchemaLoader schemaLoader = SchemaLoader.builder()
-//                .schemaClient(SchemaClient.classPathAwareClient())
-//                .schemaJson(rawSchema)
-////                .resolutionScope("file:///home/sergiu/repos/AionRpc/CodeGen/src/main/resources/schemas/") // setting the default resolution scope
-//                .resolutionScope("file:///home/sergiu/repos/AionRpc/CodeGen/src/main/resources/schemas/")
-//                .build();
-//            return schemaLoader.load().build(); // wtf
-//        }
-//    }
 
 }

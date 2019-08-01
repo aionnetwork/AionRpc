@@ -33,9 +33,8 @@ public class GenerateRpcInterface {
         String types = Resources.toString(typesUrl, Charsets.UTF_8);
         JsonNode typesSchemaRoot = mapper.readTree(types);
 
-        TypeReferences visitedRefs = new TypeReferences();
+        TypeRegistry visitedRefs = new TypeRegistry();
         List<String> methods = loadMethodList();
-        ByteArrayInliner byteArrayInliner = new ByteArrayInliner(visitedRefs, typesSchemaRoot);
         List<JavaInterfaceMethodDeclaration> declarations = new LinkedList<>();
 
         for(String method: methods) {
@@ -50,23 +49,20 @@ public class GenerateRpcInterface {
             JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
             JsonSchemaFixedMixedArrayResolver arrayResolver =
                     new JsonSchemaFixedMixedArrayResolver();
-            ByteArrayInliner sub = new ByteArrayInliner(visitedRefs, typesSchemaRoot);
 
             // Parameter types to method signatures
             List<Set<String>> inputTypes = arrayResolver
                     .resolve(reqRoot.get("items"), visitedRefs)
                     .stream()
-                    .map(t -> sub.inline(t))
-                    .map(t -> new HashSet<>(t.javaTypes))
+                    .map(t -> new HashSet<>(t.getJavaTypeNames()))
                     .collect(Collectors.toList());
 
             //TODO: Assuming every parameter always has the same type in the RPC method
             List<String> arguments = Sets.cartesianProduct(inputTypes).iterator().next();
 
-            ParamType retType = byteArrayInliner.inline(
-                    resolver.resolve(rezRoot, visitedRefs));
+            RpcType retType = resolver.resolveSchema(rezRoot, visitedRefs);
             declarations.add(new JavaInterfaceMethodDeclaration(
-                    method, retType.javaTypes.get(0), arguments));
+                    method, retType.getJavaTypeNames().get(0), arguments));
 
             // Ftl setup for Request
         }

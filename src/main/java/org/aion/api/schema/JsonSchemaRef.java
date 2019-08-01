@@ -12,7 +12,7 @@ import java.util.Objects;
  *
  * As per JsonSchema spec, the value is a URI.
  *   - The part before the # is a file, given by {@link #getFile()}.
- *   - The part after the # is called the fragment, given by {@link #getFragment()}.
+ *   - The part after the # is called the fragment, given by {@link #getFragmentParts()}.
  *   - The last element in the fragment is assumed to the be the AionRpc type
  *     name, given by {@link #getTypeName()}.
  *
@@ -37,7 +37,7 @@ public class JsonSchemaRef {
     }
 
     /** @return the 'fragment' part of the ref value (after the #) */
-    public String[] getFragment() {
+    public String[] getFragmentParts() {
         if(refValue.contains("#")) {
             return refValue.split("#")[1]
                 .replaceFirst("/", "")
@@ -48,12 +48,20 @@ public class JsonSchemaRef {
         }
     }
 
+    public String getFragment() {
+        if(refValue.contains("#")) {
+            return refValue.split("#")[1];
+        } else {
+            return refValue;
+        }
+    }
+
     /**
      * @return The AionRpc type name, which is defined to be the last element
-     * in {@link #getFragment()}.
+     * in {@link #getFragmentParts()}.
      */
     public String getTypeName() {
-        String[] path = getFragment();
+        String[] path = getFragmentParts();
         String[] parts = path[path.length - 1].split("/");
         return parts[parts.length - 1];
     }
@@ -72,9 +80,9 @@ public class JsonSchemaRef {
         JsonNode deref = typeDefinitionsRoot;
         JsonNode lastDeref = null;
 
-        for(int ix = 0; ix < getFragment().length; ++ix) {
+        for(int ix = 0; ix < getFragmentParts().length; ++ix) {
             lastDeref = deref;
-            deref = deref.get(getFragment()[ix]);
+            deref = deref.get(getFragmentParts()[ix]);
             if(deref == null) {
                 throw new SchemaException("Broken reference at: " + lastDeref);
             }

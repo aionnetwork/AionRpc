@@ -6,17 +6,116 @@ import static org.junit.Assert.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.aion.api.schema.ParamType.ParamKind;
 import org.junit.Test;
 
 public class JsonSchemaTypeResolverTest {
     private final File srcResources = new File("src/main/resources");
     private ObjectMapper om = new ObjectMapper();
 
+    @Test
+    public void resolveBaseTypeBooleanShorthand() throws Exception {
+        JsonNode schema = om.readTree("{\"type\":\"boolean\"}");
+        TypeRegistry refs = new TypeRegistry();
+        JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
+
+        NamedRpcType result = unit.resolveNamedSchema(schema, refs);
+        assertThat(result.getName(), is("Boolean"));
+        assertThat(result.getJavaTypeNames().size(), is(1));
+        assertThat(result.getJavaTypeNames().get(0), is("boolean"));
+        assertThat(result.getJavaFieldNames().isEmpty(), is(true));
+    }
+
+    @Test
+    public void resolveBaseTypeBooleanRef() throws Exception {
+        JsonNode schema = om.readTree("{\"$ref\":\"type/base.json#/definitions/Boolean\"}");
+        TypeRegistry refs = new TypeRegistry();
+        JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
+
+        NamedRpcType result = unit.resolveNamedSchema(schema, refs);
+        assertThat(result.getName(), is("Boolean"));
+        assertThat(result.getJavaTypeNames().size(), is(1));
+        assertThat(result.getJavaTypeNames().get(0), is("boolean"));
+        assertThat(result.getJavaFieldNames().isEmpty(), is(true));
+    }
+
+    @Test
+    public void resolveBaseTypeData() throws Exception {
+        JsonNode schema = om.readTree("{\"$ref\":\"type/base.json#/definitions/DATA\"}");
+        TypeRegistry refs = new TypeRegistry();
+        JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
+
+        NamedRpcType result = unit.resolveNamedSchema(schema, refs);
+        assertThat(result.getName(), is("DATA"));
+        assertThat(result.getJavaTypeNames().size(), is(1));
+        assertThat(result.getJavaTypeNames().get(0), is("byte[]"));
+        assertThat(result.getJavaFieldNames().isEmpty(), is(true));
+    }
+
+    @Test
+    public void resolveBaseTypeQuantity() throws Exception {
+        JsonNode schema = om.readTree("{\"$ref\":\"type/base.json#/definitions/QUANTITY\"}");
+        TypeRegistry refs = new TypeRegistry();
+        JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
+
+        NamedRpcType result = unit.resolveNamedSchema(schema, refs);
+        assertThat(result.getName(), is("QUANTITY"));
+        assertThat(result.getJavaTypeNames().size(), is(1));
+        assertThat(result.getJavaTypeNames().get(0), is("java.math.BigInteger"));
+        assertThat(result.getJavaFieldNames().isEmpty(), is(true));
+    }
+
+    @Test
+    public void testConstrainedData() throws Exception {
+        JsonNode schema = om.readTree("{\"$ref\":\"type/derived.json#/definitions/DATA32\"}");
+        TypeRegistry refs = new TypeRegistry();
+        JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
+
+        NamedRpcType result = unit.resolveNamedSchema(schema, refs);
+        assertThat(result.getName(), is("DATA32"));
+        assertThat(result.getJavaTypeNames().size(), is(1));
+        assertThat(result.getJavaTypeNames().get(0), is("byte[]"));
+        assertThat(result.getJavaFieldNames().isEmpty(), is(true));
+    }
+
+
+    /*
+    @Test
+    public void resolveObjectWithPropertiesWithManyTypes() throws Exception {
+        // if this fails, check that the test is executing with working directory
+        // as AION_RPC_ROOT/src/test.  Loading the file this way because loading
+        // test resources doesn't seem to work...
+        JsonNode schema = om.readTree(new File(
+                "src/test/resources/test-schemas/object-with-quantity-data-boolean.json"));
+        TypeRegistry refs = new TypeRegistry();
+
+
+        JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
+        RpcType result = unit.resolve(schema, refs);
+
+        assertThat(result.getJavaTypeNames().size(), is(3));
+        assertThat(result.getJavaTypeNames().size(), is(result.getJavaFieldNames().size()));
+
+        assertThat(result.getJavaFieldNames().contains("myQuantityField"), is(true));
+        assertThat(result.getJavaFieldNames().contains("myDataField"), is(true));
+        assertThat(result.getJavaFieldNames().contains("myBooleanField"), is(true));
+
+        // the order in which the parameters appear in result.javaNames and result.javaTypes
+        // does not matter, but it does matter that the index of a particular java name
+        // is using the same index for the corresponding java type
+        Map<String, String> resultMap = new HashMap<>();
+        for(int ix = 0; ix < result.getJavaFieldNames().size(); ++ix) {
+            resultMap.put(result.getJavaFieldNames().get(ix), result.getJavaTypeNames().get(ix));
+        }
+
+        assertThat(resultMap.get("myQuantityField"), is("QUANTITY"));
+        assertThat(resultMap.get("myDataField"), is("DATA"));
+        assertThat(resultMap.get("myBooleanField"), is("boolean"));
+    }
+    */
+
+
+    /*
     // -- supported Javascript built-in scalars -----------------------------------------
     @Test
     public void resolveString() throws Exception {
@@ -105,37 +204,7 @@ public class JsonSchemaTypeResolverTest {
         assertThat(result.javaTypes.get(1), is("boolean"));
     }
 
-    @Test
-    public void resolveObjectWithPropertiesWithManyTypes() throws Exception {
-        // if this fails, check that the test is executing with working directory
-        // as AION_RPC_ROOT/src/test.  Loading the file this way because loading
-        // test resources doesn't seem to work...
-        JsonNode schema = om.readTree(new File(
-                "src/test/resources/test-schemas/object-with-quantity-data-boolean.json"));
 
-        JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
-        ParamType result = unit.resolve(schema, new TypeReferences());
-
-        assertThat(result.kind, is(ParamKind.OBJECT));
-        assertThat(result.javaNames.size(), is(3));
-        assertThat(result.javaTypes.size(), is(result.javaNames.size()));
-
-        assertThat(result.javaNames.contains("myQuantityField"), is(true));
-        assertThat(result.javaNames.contains("myDataField"), is(true));
-        assertThat(result.javaNames.contains("myBooleanField"), is(true));
-
-        // the order in which the parameters appear in result.javaNames and result.javaTypes
-        // does not matter, but it does matter that the index of a particular java name
-        // is using the same index for the corresponding java type
-        Map<String, String> resultMap = new HashMap<>();
-        for(int ix = 0; ix < result.javaNames.size(); ++ix) {
-            resultMap.put(result.javaNames.get(ix), result.javaTypes.get(ix));
-        }
-
-        assertThat(resultMap.get("myQuantityField"), is("QUANTITY"));
-        assertThat(resultMap.get("myDataField"), is("DATA"));
-        assertThat(resultMap.get("myBooleanField"), is("boolean"));
-    }
 
     @Test(expected = IllegalArgumentException.class)
     public void resolveNestedObject() throws Exception {
@@ -160,5 +229,5 @@ public class JsonSchemaTypeResolverTest {
 
 
     // -- Custom non-container types derived from Javascript primitives ---------------------------
-
+*/
 }

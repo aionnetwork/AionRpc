@@ -1,10 +1,12 @@
 package org.aion.api.schema;
 
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.Iterator;
-import java.util.LinkedList;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.aion.api.serialization.Utils;
+
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Resolves types from a JsonSchema to types in Java.  JsonSchema
@@ -14,160 +16,144 @@ import java.util.Map;
  * purpose JsonSchema processing).  Only parts of JsonSchema spec that
  * were needed at the time are implemented (feel free to extend).
  *
- * Main method: {@link #resolve(JsonNode, TypeReferences)}
+ * TODO:
+ *  - TypeRegistry consistency check
+ *  - handle Object
+ *
  */
 public class JsonSchemaTypeResolver {
+    private ObjectMapper om = new ObjectMapper();
 
-    /**
-     * Given a JsonSchema that represents a type definition for Aion RPC
-     * server, return a {@link ParamType} describing that type, which can
-     * be used to generate custom Java classes representing that type.
-     *
-     * There are specific restrictions around the type definition:
-     * - the JsonSchema keywords "anyOf" and "allOf" aren't allowed (no real use case)
-     * - if a JsonSchema is a container type or keyword "oneOf" is used, the
-     *   subschemas within them can't be another container, but they can be a $ref
-     *   to a separate schema that is a container.
-     * - For all $ref values used, the 'name,' or last 'part' of the value (i.e. for
-     *   "types.json#/DEFINITIONS/TAG" it would be "TAG") can only be used once
-     *   within a schema (and all its contained elements)
-     *
-     * @param schema root of the JsonSchema
-     * @param refsVisited output variable: callers should give this an empty map;
-     *                    will be populated with custom type names and their
-     *                    JsonSchema "$ref" value
-     * @return type descriptor of the schema
-     * @throws SchemaException if an invalid structure is encountered
-     */
-    public ParamType resolve(JsonNode schema,
-                             TypeReferences refsVisited) {
+    public RpcType resolveSchema(JsonNode schema,
+                                 TypeRegistry types) {
+        RpcType baseType;
+
+        // if we recognize given schema as a base type, then return that base type
+        baseType = resolveBaseType(schema);
+        if(baseType != null) {
+            return baseType;
+        }
+
+        // otherwise, it is some type derived from a base type.
+        // need to build up a new RpcType object that represents it.
         if (schema.has("type")) {
-            // item uses "type" -- look up what it needs to be
             String type = schema.get("type").asText();
             switch (type) {
-                case "string":
-                    return new ParamType("java.lang.String");
-                case "boolean":
-                    return new ParamType("boolean");
-                case "object":
-                    return resolveObject(schema, refsVisited);
+                case "object": // coming soon
                 case "array": // not supported yet
-                case "number": // not supporting number for now, not used anyway
+                case "number": // disallowed
                 default:
                     throw new UnsupportedOperationException(
-                            "Unsupported or disallowed 'type' parameter: " + type);
+                        "Unsupported or disallowed 'type' parameter: " + type);
             }
-        } else if (schema.has("oneOf")) {
-            return resolveOneOf(schema, refsVisited);
         } else if (schema.has("$ref")) {
-//            if("DATA".equals(schema.get("$ref"))) {
-//                return new ParamType("byte[]");
-//            }
-            return resolveRef(schema, refsVisited);
+            return resolveRef(schema, types);
+        } else if (schema.has("allOf")) {
+            return resolveAllOf(schema, types);
+        }
+
+        // couldn't figure out the type, time to give up and fail
+        throw new SchemaException(
+            "Expected schema to have 'type', '$ref', or 'oneOf' but it " +
+                "was missing.  Schema was: " + schema.asText());
+    }
+
+    public NamedRpcType resolveNamedSchema(JsonNode schema,
+                                           TypeRegistry types) {
+        // if we recognize given schema as a base type, then return that base type
+        NamedRpcType baseType = resolveBaseType(schema);
+        if(baseType != null) {
+            return baseType;
+        }
+
+        return resolveRef(schema, types);
+    }
+
+    private NamedRpcType resolveBaseType(JsonNode schema) {
+        JsonNode schemaTypeNode;
+
+        schemaTypeNode = schema.get("type");
+        if(schemaTypeNode != null && schemaTypeNode.asText().equals("boolean")) {
+            return BaseTypes.BOOLEAN;
+        }
+
+        schemaTypeNode = schema.get("$ref");
+        if(schemaTypeNode != null) {
+            JsonSchemaRef ref = new JsonSchemaRef(schemaTypeNode.asText());
+            // should check that the pointer actually matches the built-in ones
+            if (ref.getTypeName().equals("QUANTITY")) {
+                return BaseTypes.QUANTITY;
+            } else if (ref.getTypeName().equals("DATA")) {
+                return BaseTypes.DATA;
+            } else if (ref.getTypeName().equals("Boolean")) {
+                return BaseTypes.BOOLEAN;
+            }
+        }
+
+        return null;
+    }
+
+    private NamedRpcType resolveRef(JsonNode subschema,
+                                    TypeRegistry types) {
+        // item uses "$ref"
+        // we need to dereference it by following the pointer in order
+        // to construct the RpcType
+        JsonNode refNode = subschema.get("$ref");
+        final JsonSchemaRef ref = new JsonSchemaRef(refNode.asText());
+
+        JsonNode definition;
+        try {
+            JsonNode refFileRoot = Utils.loadSchema(om, "schemas/" + ref.getFile());
+
+            JsonPointer fragment = JsonPointer.compile(ref.getFragment());
+            definition = refFileRoot.at(fragment);
+        } catch (IOException ioe) {
+            throw new SchemaException(String.format(
+                    "Failed to load schema file '%s' when dereferencing pointer '%s'",
+                    ref.getFile(),
+                    ref.getValue())
+            );
+        }
+
+        RpcType resolved = resolveSchema(definition, types);
+        return new NamedRpcType(ref.getTypeName(), resolved);
+    }
+
+    private RpcType resolveAllOf(JsonNode schema,
+                                 TypeRegistry types) {
+        JsonNode allOf = schema.get("allOf");
+        if(allOf.size() > 2) {
+            throw new SchemaRestrictionException("allOf must have only two elements");
+        }
+
+        JsonNode first = allOf.get(0);
+
+        JsonNode base;
+        JsonNode constraint;
+        if(first.has("type") || first.has("$ref")) {
+            base = first;
+            constraint = allOf.get(1);
         } else {
-            throw new SchemaException(
-                    "Expected schema to have 'type', '$ref', or 'oneOf' but it " +
-                            "was missing.  Schema was: " + schema.asText());
-        }
-    }
-
-    private ParamType resolveOneOf(JsonNode subschema,
-                                   TypeReferences refsVisited) {
-        // item uses "oneOf" -- need to traverse that
-        JsonNode items = subschema.get("oneOf");
-        List<String> itemTypes = new LinkedList<>();
-
-        for(Iterator<JsonNode> iter = items.elements(); iter.hasNext(); ) {
-            JsonNode node = iter.next();
-            ParamType paramType = resolve(node, refsVisited);
-
-            if(paramType.isCollection()) {
-                throw new RuntimeException("Object properties must be scalar.  " +
-                        "If your object needs to hold another container, hold a $ref " +
-                        "instead and define it to have the schema of your container.");
-            }
-            itemTypes.add(paramType.javaTypes.get(0));
-        }
-        return new ParamType(
-            ParamType.ParamKind.ONE_OF, itemTypes, null, refsVisited);
-    }
-
-    private ParamType resolveObject(JsonNode subschema,
-                                    TypeReferences refsVisited) {
-        JsonNode props = subschema.get("properties");
-        if(props == null) {
-            throw new IllegalArgumentException(
-                    "Schemas derived from object must define its properties");
-        }
-        List<String> propNames = new LinkedList<>();
-
-        // since we know that we never want object to contain
-        // another object unless through $ref, we can represent the type with
-        // String instead of another ParamKind
-        List<String> propTypes = new LinkedList<>();
-
-        for(Iterator<Map.Entry<String, JsonNode>> iter = props.fields(); iter.hasNext(); ) {
-            Map.Entry<String, JsonNode> prop = iter.next();
-            ParamType propType = resolve(prop.getValue(), refsVisited);
-
-//            if(propType.isCollection()) {
-            if(propType.kind == ParamType.ParamKind.OBJECT) {
-                throw new IllegalArgumentException("Object properties must be scalar.  " +
-                        "If your object needs to hold another container, hold a $ref " +
-                        "instead and define it to have the schema of your container.  " +
-                        "Was trying to resolve: " + propType.toString());
-            }
-            propTypes.add(propType.javaTypes.get(0));
-            propNames.add(prop.getKey());
+            base = allOf.get(0);
+            constraint = first;
         }
 
-        return new ParamType(
-            ParamType.ParamKind.OBJECT, propTypes, propNames, refsVisited);
-    }
+        if(constraint.has("type")
+            || constraint.has("$ref")
+            || constraint.has("allOf")) {
+            throw new SchemaRestrictionException("Only one schema inside allOf may" +
+                    " use type, $ref, or allOf");
+        }
 
-//    private ParamType resolveArray(JsonNode subschema,
-//                                   TypeReferences refsVisited) {
-//        JsonNode items = subschema.get("elements");
-//        List<String> itemTypes = new LinkedList<>();
-//
-//        if(items == null) {
-//            itemTypes.add("java.lang.Object[]");
-//        } else {
-//            for (Iterator<JsonNode> iter = items.elements(); iter.hasNext(); ) {
-//                JsonNode node = iter.next();
-//                ParamType paramType = resolve(node, refsVisited);
-//
-//                if (paramType.isCollection()) {
-//                    throw new RuntimeException("Object properties must be scalar.  " +
-//                            "If your object needs to hold another container, hold a $ref " +
-//                            "instead and define it to have the schema of your container." +
-//                            "  Can't add:" + paramType);
-//                }
-//                itemTypes.add(paramType.javaNames.get(0));
-//            }
-//        }
-//        return new ParamType(
-//            ParamType.ParamKind.ARRAY, itemTypes, null, refsVisited);
-//    }
+        RpcType baseResolved = resolveSchema(base, types);
 
-    private ParamType resolveRef(JsonNode subschema,
-                                 TypeReferences refsVisited) {
-        // item uses "$ref" -- save the value into refsVisited
-        // so it can be dereferenced at a later time
-        JsonNode node = subschema.get("$ref");
-        final JsonSchemaRef ref = new JsonSchemaRef(node.asText());
-
-
-
-//        if("DATA".equals(ref.getTypeName()) // $ref points to DATA
-//            || (                        // or points to a schema with $ref to DATA
-//                node.has("$ref")
-//                    && node.get("$ref").asText().endsWith("DATA")
-//        )) {
-//            return new ParamType("byte[]");
-//        }
-
-        refsVisited.put(ref);
-        return new ParamType(ref);
+        JsonSchemaRef ref = new JsonSchemaRef(allOf.asText());
+        return new RpcType(
+                ref,
+                new JsonSchemaRef(base.asText()),
+                new JsonSchemaRef(constraint.asText()),
+                baseResolved.getJavaTypeNames(),
+                List.of()
+        );
     }
 }

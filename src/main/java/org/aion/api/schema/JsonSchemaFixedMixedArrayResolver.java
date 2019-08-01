@@ -28,15 +28,15 @@ public class JsonSchemaFixedMixedArrayResolver {
      * @param refsVisited
      * @return
      */
-    public List<ParamType> resolve(JsonNode items, TypeReferences refsVisited) {
-        List<ParamType> paramTypes = new LinkedList<>();
+    public List<RpcType> resolve(JsonNode items, TypeRegistry refsVisited) {
+        List<RpcType> paramTypes = new LinkedList<>();
 
         if(items == null || ! items.isArray()) {
             throw new SchemaException("items must be an array.");
         }
         for(Iterator<JsonNode> it = items.elements(); it.hasNext(); ) {
             JsonNode param = it.next();
-            ParamType t = resolver.resolve(param, refsVisited);
+            NamedRpcType t = resolver.resolveNamedSchema(param, refsVisited);
             paramTypes.add(t);
         }
 

@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "type/derived.json",
+
+  "definitions": {
+    "DATA32": {
+      "$comment": "Only here for test purposes at the moment.",
+      "allOf": [
+        {
+          "$ref": "type/base.json#DATA"
+        },
+        {
+          "minLength": 34,
+          "maxLength": 34
+        }
+      ]
+    },
+
+    "SomeStruct": {
+      "$comment": "Only here for test purposes at the moment.",
+      "type": "object",
+      "properties": {
+        "MyData": {"$ref": "type/derived.json#DATA32"},
+        "MyQuantity": {"$ref": "type/base.json#QUANTITY"}
+      }
+    }
+
+  }
+}

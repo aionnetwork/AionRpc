@@ -5,8 +5,6 @@ import static org.junit.Assert.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeCreator;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 
@@ -27,7 +25,7 @@ public class JsonSchemaRefTest {
     @Test
     public void getFragment() {
         JsonSchemaRef unit = new JsonSchemaRef("#/some/thing");
-        String[] fragment = unit.getFragment();
+        String[] fragment = unit.getFragmentParts();
         assertThat(fragment[0], is("some"));
         assertThat(fragment[1], is("thing"));
     }

@@ -9,7 +9,7 @@ public class RpcMethodSchemaLoader {
 
     public JsonNode loadRequestSchema(String methodName) throws IOException {
         return Utils.loadSchema(
-            om, "schemas/" + methodName + ".response.json");
+            om, "schemas/" + methodName + ".request.json");
     }
 
     public JsonNode loadResponseSchema(String methodName) throws IOException {

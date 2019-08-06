@@ -7,6 +7,7 @@ import com.google.common.io.Resources;
 import java.math.BigInteger;
 import java.net.URL;
 import org.aion.api.schema.JsonSchemaTypeResolver;
+import org.aion.api.schema.SchemaValidationException;
 import org.aion.api.schema.SchemaValidator;
 import org.junit.Test;
 
@@ -23,20 +24,20 @@ public class RequestDeserializerTest {
     private final JsonNode typesSchemaRoot;
 
     public RequestDeserializerTest() throws Exception {
-        URL typesUrl = Resources.getResource("schemas/type.json");
+        URL typesUrl = Resources.getResource("schemas/type/root.json");
         String types = Resources.toString(typesUrl, Charsets.UTF_8);
         typesSchemaRoot = om.readTree(types);
     }
 
     @Test
-    public void testMixOfScalars() throws Exception {
+    public void testMixOfRootScalars() throws Exception {
         JsonNode requestSchema = om.readTree(
             "{"
                 + "\"type\": \"array\","
                 + "\"items\" : "
                 + "[ "
-                + "{ \"$ref\" : \"type.json#/definitions/DATA\" }, "
-                + "{ \"$ref\" : \"type.json#/definitions/QUANTITY\" }, "
+                + "{ \"$ref\" : \"root.json#/definitions/DATA\" }, "
+                + "{ \"$ref\" : \"root.json#/definitions/QUANTITY\" }, "
                 + "{ \"type\" : \"boolean\" } "
                 + "]}");
         when(schemaLoader.loadRequestSchema("testMethod"))
@@ -62,5 +63,62 @@ public class RequestDeserializerTest {
         assertThat(result.getParams()[0], is(new byte[] { 0x10 }));
         assertThat(result.getParams()[1], is(new BigInteger("e", 16)));
         assertThat(result.getParams()[2], is(true));
+    }
+
+    @Test
+    public void testPassedLengthConstraint() throws Exception {
+        JsonNode requestSchema = om.readTree(
+            "{"
+                + "\"type\": \"array\","
+                + "\"items\" : "
+                + "[ "
+                + "{ \"$ref\" : \"derived.json#/definitions/DATA32\" } "
+                + "]}");
+        when(schemaLoader.loadRequestSchema("testMethod"))
+            .thenReturn(requestSchema);
+
+        String payload = "{                                                                                                                                                                                                                   \n" +
+            "  \"method\": \"testMethod\",\n" +
+            "  \"params\": [\"0x123456789a123456789a123456789a123456789a123456789a123456789a12345\"],\n" +
+            "  \"id\": \"1\",\n" +
+            "  \"jsonrpc\": \"2.0\"\n" +
+            "}";
+        RequestDeserializer unit = new RequestDeserializer(
+            om,
+            typesSchemaRoot,
+            schemaLoader,
+            validator);
+
+        try {
+            JsonRpcRequest result = unit.deserialize(payload);
+        } catch (SchemaValidationException svx) {
+
+        }
+    }
+
+    @Test(expected = SchemaValidationException.class)
+    public void testFailedLengthConstraint() throws Exception {
+        JsonNode requestSchema = om.readTree(
+            "{"
+                + "\"type\": \"array\","
+                + "\"items\" : "
+                + "[ "
+                + "{ \"$ref\" : \"derived.json#/definitions/DATA32\" } "
+                + "]}");
+        when(schemaLoader.loadRequestSchema("testMethod"))
+            .thenReturn(requestSchema);
+
+        String payload = "{                                                                                                                                                                                                                   \n" +
+            "  \"method\": \"testMethod\",\n" +
+            "  \"params\": [\"0x10\"],\n" +
+            "  \"id\": \"1\",\n" +
+            "  \"jsonrpc\": \"2.0\"\n" +
+            "}";
+        RequestDeserializer unit = new RequestDeserializer(
+            om,
+            typesSchemaRoot,
+            schemaLoader,
+            validator);
+        unit.deserialize(payload);
     }
 }

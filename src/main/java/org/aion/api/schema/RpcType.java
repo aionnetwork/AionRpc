@@ -3,6 +3,7 @@ package org.aion.api.schema;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents an Aion Rpc Type.
@@ -22,7 +23,7 @@ public class RpcType {
     // JsonSchema definition
     private final JsonSchemaRef definition;
 
-    private final JsonSchemaRef baseTypeSchema;
+    private final RpcType baseType;
     private final JsonSchemaRef constraints;
 
 //    private final JsonNode typesDefinitions;
@@ -43,20 +44,20 @@ public class RpcType {
      * Constructor.
      *
      * @param definition
-     * @param baseTypeSchema
+     * @param baseType
      * @param constraints
      * @param javaFieldNames
      * @param javaTypeNames
      */
     public RpcType(JsonSchemaRef definition,
-                   JsonSchemaRef baseTypeSchema,
+                   RpcType baseType,
                    JsonSchemaRef constraints,
                    List<String> javaTypeNames,
                    List<String> javaFieldNames) {
-//        checkRefs(definition, baseTypeSchema, constraints, typesDefinitions);
+//        checkRefs(definition, baseTypeSchema, constraints, typesDefin itions);
 
         this.definition = definition;
-        this.baseTypeSchema = baseTypeSchema;
+        this.baseType = baseType;
         this.constraints = constraints;
         this.javaFieldNames = javaFieldNames;
         this.javaTypeNames = javaTypeNames;
@@ -85,11 +86,48 @@ public class RpcType {
         return definition;
     }
 
-    public JsonSchemaRef getBaseTypeSchema() {
-        return baseTypeSchema;
+    public RpcType getBaseType() {
+        return baseType;
     }
 
     public JsonSchemaRef getConstraints() {
         return constraints;
+    }
+
+    public RpcType getRootType() {
+        if(isRootType()) {
+            return this;
+        }
+
+        RpcType parent = getBaseType();
+        while(parent.getBaseType() != null) {
+            parent = parent.getBaseType();
+        }
+        return parent;
+    }
+
+    public boolean isRootType() {
+        return baseType == null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RpcType)) {
+            return false;
+        }
+        RpcType rpcType = (RpcType) o;
+        return Objects.equals(definition, rpcType.definition) &&
+            Objects.equals(baseType, rpcType.baseType) &&
+            Objects.equals(constraints, rpcType.constraints) &&
+            Objects.equals(javaFieldNames, rpcType.javaFieldNames) &&
+            Objects.equals(javaTypeNames, rpcType.javaTypeNames);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(definition, baseType, constraints, javaFieldNames, javaTypeNames);
     }
 }

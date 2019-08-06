@@ -13,7 +13,7 @@ public class UtilsTest {
     @Test
     public void loadSchema() throws Exception {
         ObjectMapper om = new ObjectMapper();
-        JsonNode node = Utils.loadSchema(om, "schemas/type/base.json");
+        JsonNode node = Utils.loadSchema(om, "schemas/type/root.json");
         assertThat(node, is(notNullValue()));
     }
 }

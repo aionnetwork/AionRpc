@@ -32,7 +32,7 @@ public class SchemaValidatorTest {
 
     @Test
     public void validateRegexConstrainedString() throws Exception {
-        JSONObject schema = new JSONObject("{\"$ref\": \"type.json#/definitions/DATA\"}");
+        JSONObject schema = new JSONObject("{\"$ref\": \"root.json#/definitions/DATA\"}");
         SchemaValidator unit = new SchemaValidator();
         JsonNode input;
 
@@ -57,7 +57,7 @@ public class SchemaValidatorTest {
 
     @Test
     public void validateTypeDerivedFromData() throws Exception {
-        JSONObject schema = new JSONObject("{\"$ref\": \"type.json#/definitions/DATA32\"}");
+        JSONObject schema = new JSONObject("{\"$ref\": \"derived.json#/definitions/DATA32\"}");
         SchemaValidator unit = new SchemaValidator();
         JsonNode input;
 

@@ -7,11 +7,11 @@
       "$comment": "Only here for test purposes at the moment.",
       "allOf": [
         {
-          "$ref": "type/base.json#DATA"
+          "$ref": "root.json#/definitions/DATA"
         },
         {
-          "minLength": 34,
-          "maxLength": 34
+          "minLength": 66,
+          "maxLength": 66
         }
       ]
     },
@@ -20,8 +20,8 @@
       "$comment": "Only here for test purposes at the moment.",
       "type": "object",
       "properties": {
-        "MyData": {"$ref": "type/derived.json#DATA32"},
-        "MyQuantity": {"$ref": "type/base.json#QUANTITY"}
+        "MyData": {"$ref": "derived.json#/definitions/DATA32"},
+        "MyQuantity": {"$ref": "root.json#/definitions/QUANTITY"}
       }
     }
 

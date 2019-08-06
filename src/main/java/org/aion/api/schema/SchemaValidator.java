@@ -101,7 +101,7 @@ public class SchemaValidator {
         SchemaLoader schemaLoader = SchemaLoader.builder()
             .schemaClient(SchemaClient.classPathAwareClient())
             .schemaJson(schema)
-            .resolutionScope("file:///home/sergiu/repos/aion_AionRpc/src/main/resources/schemas/")
+            .resolutionScope("file:///home/sergiu/repos/aion_AionRpc/src/main/resources/schemas/type/")
             .build();
         return schemaLoader.load().build();
     }

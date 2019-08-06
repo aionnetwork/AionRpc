@@ -38,7 +38,7 @@ public class GenerateRpcProcessor {
         ObjectMapper mapper = new ObjectMapper();
 
         // Get JsonSchema stuff
-        URL typesUrl = Resources.getResource("schemas/type.json");
+        URL typesUrl = Resources.getResource("schemas/type/root.json");
         String types = Resources.toString(typesUrl, Charsets.UTF_8);
         JsonNode typesSchemaRoot = mapper.readTree(types);
 

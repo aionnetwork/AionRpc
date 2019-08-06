@@ -6,13 +6,13 @@ public class NamedRpcType extends RpcType {
     private String name;
 
     public NamedRpcType(JsonSchemaRef definition,
-                        JsonSchemaRef baseTypeSchema,
+                        RpcType baseType,
                         JsonSchemaRef constraints,
                         List<String> javaTypeNames,
                         List<String> javaFieldNames) {
         super(
             definition,
-            baseTypeSchema,
+            baseType,
             constraints,
             javaTypeNames,
             javaFieldNames
@@ -25,7 +25,7 @@ public class NamedRpcType extends RpcType {
                         RpcType type) {
         super(
             type.getDefinition(),
-            type.getBaseTypeSchema(),
+            type.getBaseType(),
             type.getConstraints(),
             type.getJavaTypeNames(),
             type.getJavaFieldNames()

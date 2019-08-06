@@ -3,16 +3,18 @@ package org.aion.api.serialization;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
-import com.google.common.io.Resources;
+import org.aion.api.schema.RootTypes;
 import org.aion.api.schema.JsonSchemaTypeResolver;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.URL;
 import java.util.List;
+import org.aion.api.schema.NamedRpcType;
+import org.aion.api.schema.RpcType;
+import org.aion.api.schema.SchemaValidationException;
 import org.aion.api.schema.SchemaValidator;
+import org.aion.api.schema.TypeRegistry;
 
 import static org.aion.api.serialization.Utils.hexStringToByteArray;
 
@@ -58,7 +60,8 @@ public class RequestDeserializer {
      * @return Java representation of the payload
      * @throws IOException if schema for the method name in the call can't be loaded
      */
-    public JsonRpcRequest deserialize(String payload) throws IOException  {
+    public JsonRpcRequest deserialize(String payload)
+    throws IOException, SchemaValidationException {
         // note to self -- needs to get called by AbstractRpcServer in the kernel.  which will
         // need to look at the request schema so it can cast the params array correctly
         JsonRpcRequest req = om.readValue(payload, JsonRpcRequest.class);
@@ -66,7 +69,7 @@ public class RequestDeserializer {
         JsonNode payloadRoot = om.readTree(payload);
         JsonNode params = payloadRoot.get("params");
         if(params == null || !params.isArray()) {
-            throw new IllegalArgumentException("Params array missing from request.");
+            throw new SchemaValidationException("Params array missing from request.");
         }
 
         String method = payloadRoot.get("method").asText();
@@ -76,11 +79,12 @@ public class RequestDeserializer {
         List<JsonNode> paramNodes = Lists.newArrayList(params.elements());
 
         if(schemaParamNodes.size() != paramNodes.size()) {
-            throw new IllegalArgumentException(String.format(
+            throw new SchemaValidationException(String.format(
                     "Wrong number of arguments (expected %d but got %d)", schemaParamNodes.size(), paramNodes.size()));
         }
 
         Object[] reqParams = new Object[paramNodes.size()];
+        TypeRegistry tr = new TypeRegistry();
 
         for(int ix = 0; ix < paramNodes.size(); ++ix) {
             // TODO: only works with DATA and QUANTITY right now
@@ -88,22 +92,28 @@ public class RequestDeserializer {
 
             // Check this param value against the schema for the param
             if(! validator.validate(expectedTypeSchema, paramNodes.get(ix))) {
-                throw new IllegalArgumentException(
+                throw new SchemaValidationException(
                     String.format("Schema validation error at parameter '%s'",
                         paramNodes.get(ix).toString()));
             }
 
-            if(expectedTypeSchema.has("type")
-                && expectedTypeSchema.get("type").asText().equals("boolean")) {
+            NamedRpcType rpcType = resolver.resolveNamedSchema(expectedTypeSchema, tr);
+            RpcType root = rpcType.getRootType();
+
+            // For everything type except those rooted in Object, the serialization
+            // procedure is the same as their root type.  Just the validation part
+            // is different, which has already happened.
+
+            if(root.equals(RootTypes.BOOLEAN)) {
 
                 reqParams[ix] = paramNodes.get(ix).asBoolean();
 
-            } else if(expectedTypeSchema.get("$ref").asText().endsWith("DATA")) {
+            } else if(root.equals(RootTypes.DATA)) {
 
                 String nodeVal = paramNodes.get(ix).asText();
                 reqParams[ix] = hexStringToByteArray(nodeVal);
 
-            } else if(expectedTypeSchema.get("$ref").asText().endsWith("QUANTITY")) {
+            } else if(root.equals(RootTypes.QUANTITY)) {
 
                 String nodeVal = paramNodes.get(ix).asText();
                 // need to pad it to even-length so it may be converted to byte[]

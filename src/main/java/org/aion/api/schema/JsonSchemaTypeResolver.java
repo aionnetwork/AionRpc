@@ -74,7 +74,7 @@ public class JsonSchemaTypeResolver {
 
         schemaTypeNode = schema.get("type");
         if(schemaTypeNode != null && schemaTypeNode.asText().equals("boolean")) {
-            return BaseTypes.BOOLEAN;
+            return RootTypes.BOOLEAN;
         }
 
         schemaTypeNode = schema.get("$ref");
@@ -82,11 +82,11 @@ public class JsonSchemaTypeResolver {
             JsonSchemaRef ref = new JsonSchemaRef(schemaTypeNode.asText());
             // should check that the pointer actually matches the built-in ones
             if (ref.getTypeName().equals("QUANTITY")) {
-                return BaseTypes.QUANTITY;
+                return RootTypes.QUANTITY;
             } else if (ref.getTypeName().equals("DATA")) {
-                return BaseTypes.DATA;
+                return RootTypes.DATA;
             } else if (ref.getTypeName().equals("Boolean")) {
-                return BaseTypes.BOOLEAN;
+                return RootTypes.BOOLEAN;
             }
         }
 
@@ -103,7 +103,7 @@ public class JsonSchemaTypeResolver {
 
         JsonNode definition;
         try {
-            JsonNode refFileRoot = Utils.loadSchema(om, "schemas/" + ref.getFile());
+            JsonNode refFileRoot = Utils.loadSchema(om, "schemas/type/" + ref.getFile());
 
             JsonPointer fragment = JsonPointer.compile(ref.getFragment());
             definition = refFileRoot.at(fragment);
@@ -150,7 +150,7 @@ public class JsonSchemaTypeResolver {
         JsonSchemaRef ref = new JsonSchemaRef(allOf.asText());
         return new RpcType(
                 ref,
-                new JsonSchemaRef(base.asText()),
+                baseResolved,
                 new JsonSchemaRef(constraint.asText()),
                 baseResolved.getJavaTypeNames(),
                 List.of()

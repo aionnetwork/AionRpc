@@ -28,7 +28,7 @@ public class JsonSchemaTypeResolverTest {
 
     @Test
     public void resolveBaseTypeBooleanRef() throws Exception {
-        JsonNode schema = om.readTree("{\"$ref\":\"type/base.json#/definitions/Boolean\"}");
+        JsonNode schema = om.readTree("{\"$ref\":\"root.json#/definitions/Boolean\"}");
         TypeRegistry refs = new TypeRegistry();
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
 
@@ -41,7 +41,7 @@ public class JsonSchemaTypeResolverTest {
 
     @Test
     public void resolveBaseTypeData() throws Exception {
-        JsonNode schema = om.readTree("{\"$ref\":\"type/base.json#/definitions/DATA\"}");
+        JsonNode schema = om.readTree("{\"$ref\":\"root.json#/definitions/DATA\"}");
         TypeRegistry refs = new TypeRegistry();
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
 
@@ -54,7 +54,7 @@ public class JsonSchemaTypeResolverTest {
 
     @Test
     public void resolveBaseTypeQuantity() throws Exception {
-        JsonNode schema = om.readTree("{\"$ref\":\"type/base.json#/definitions/QUANTITY\"}");
+        JsonNode schema = om.readTree("{\"$ref\":\"root.json#/definitions/QUANTITY\"}");
         TypeRegistry refs = new TypeRegistry();
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
 
@@ -67,7 +67,7 @@ public class JsonSchemaTypeResolverTest {
 
     @Test
     public void testConstrainedData() throws Exception {
-        JsonNode schema = om.readTree("{\"$ref\":\"type/derived.json#/definitions/DATA32\"}");
+        JsonNode schema = om.readTree("{\"$ref\":\"derived.json#/definitions/DATA32\"}");
         TypeRegistry refs = new TypeRegistry();
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
 

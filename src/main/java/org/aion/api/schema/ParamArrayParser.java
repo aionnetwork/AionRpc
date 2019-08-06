@@ -76,7 +76,7 @@ public class ParamArrayParser {
     }
 
     private void loadDefinitions() throws Exception {
-        URL typesUrl = Resources.getResource("schemas/type.json");
+        URL typesUrl = Resources.getResource("schemas/type/root.json");
 
         try (InputStream inputStream = typesUrl.openStream()) {
             JSONObject typesRoot = new JSONObject(new JSONTokener(inputStream));

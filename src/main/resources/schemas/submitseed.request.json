@@ -8,14 +8,13 @@
   "additionalItems": false,
   "items": [
     {
-      "$ref": "type.json#/definitions/DATA",
-      "$comment": "Should create a DATA128 and use that instead, but RPC generator doesn't support it yet.",
-      "description": "128 hex decimal characters with 0x prefix seed of block (n+1)."
+      "$ref": "derived.json#/definitions/DATA64",
+      "description": "seed: 128 hex decimal characters with 0x prefix seed of block (n+1)."
     },
     {
-      "$ref": "type.json#/definitions/DATA",
+      "$ref": "derived.json#/definitions/DATA32",
       "$comment": "Should create a DATA64 and use that instead, but RPC generator doesn't support it yet.",
-      "description": "64 hex decimal characters with 0x prefix hash of block (n + 1) ."
+      "description": "public key: 64 hex decimal characters with 0x prefix hash of block (n + 1) ."
     }
   ],
 

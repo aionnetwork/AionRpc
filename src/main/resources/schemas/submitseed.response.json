@@ -4,7 +4,7 @@
   "title": "submitseed response parameters",
   "description": "new staking block pre-seal hash retun by the DATA type",
 
-  "$ref": "type.json#/definitions/DATA",
+  "$ref": "derived.json#/definitions/DATA32",
   "examples": [
   ]
 }

@@ -4,20 +4,23 @@
 
   "definitions": {
     "DATA32": {
-      "$comment": "Only here for test purposes at the moment.",
+      "description": "DATA, 32 bytes",
       "allOf": [
-        {
-          "$ref": "root.json#/definitions/DATA"
-        },
-        {
-          "minLength": 66,
-          "maxLength": 66
-        }
+        {"$ref": "root.json#/definitions/DATA"},
+        {"minLength": 66, "maxLength": 66}
+      ]
+    },
+
+    "DATA64": {
+      "description": "DATA, 64 bytes",
+      "allOf": [
+        {"$ref": "root.json#/definitions/DATA"},
+        {"minLength": 130, "maxLength": 130}
       ]
     },
 
     "SomeStruct": {
-      "$comment": "Only here for test purposes at the moment.",
+      "$comment": "Only here for test purposes at the moment.  Don't use structs for real code yet!",
       "type": "object",
       "properties": {
         "MyData": {"$ref": "derived.json#/definitions/DATA32"},

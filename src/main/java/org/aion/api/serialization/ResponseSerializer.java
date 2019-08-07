@@ -7,6 +7,9 @@ import org.aion.api.schema.JsonSchemaRef;
 import org.aion.api.schema.JsonSchemaTypeResolver;
 
 import java.io.IOException;
+import org.aion.api.schema.RootTypes;
+import org.aion.api.schema.RpcType;
+import org.aion.api.schema.TypeRegistry;
 
 import static org.aion.api.serialization.Utils.bytesToHex;
 
@@ -15,6 +18,7 @@ public class ResponseSerializer {
     private final JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
     private final JsonNode typesRoot; // not used yet, will be needed when types other than DATA,QUANTITY are added
     private final RpcMethodSchemaLoader schemaLoader;
+    private final TypeRegistry tr = new TypeRegistry();
 
     public ResponseSerializer(JsonNode typesRoot) {
         this(typesRoot, new RpcMethodSchemaLoader());
@@ -40,11 +44,10 @@ public class ResponseSerializer {
         JsonNode responseSchema = schemaLoader.loadResponseSchema(method);
 
         if(responseSchema.get("$ref") != null) {
-            String refText = responseSchema.get("$ref").asText();
-            JsonSchemaRef retType = new JsonSchemaRef(refText);
+            RpcType type = resolver.resolveSchema(responseSchema, tr);
 
-            if (retType.getTypeName().equals("DATA")
-                || retType.getTypeName().equals("QUANTITY")) {
+            if (type.getRootType().equals(RootTypes.DATA)
+                || type.getRootType().equals(RootTypes.QUANTITY)) {
                 // Handle the built-in json types DATA, QUANTITY directly
                 String resultJson = String.format("\"0x%s\"", bytesToHex((byte[]) resp.getResult()));
                 // TODO: Jackson it

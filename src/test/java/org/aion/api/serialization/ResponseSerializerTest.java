@@ -29,16 +29,18 @@ public class ResponseSerializerTest {
     @Test
     public void testSerializeDerivedScalar() throws Exception {
         JsonNode responseSchema = om.readTree(
-            "{\"$ref\" : \"types.json#/definitions/QUANTITY\"} ");
+            "{\"$ref\" : \"derived.json#/definitions/DATA32\"} ");
         when(schemaLoader.loadResponseSchema("testMethod"))
             .thenReturn(responseSchema);
 
         ResponseSerializer unit = new ResponseSerializer(typesSchemaRoot, schemaLoader);
+
+        byte[] responseBytes = Utils.hexStringToByteArray("0xd6b391704355efdd37c5630638dc4d3798fc8fa98d60a0c02f45f0aa988e641f");
         String result = unit.serialize(
-            new JsonRpcResponse(new byte[] { 0xa, 0xb }, "1.0"), "testMethod");
+            new JsonRpcResponse(responseBytes, "1.0"), "testMethod");
 
         JsonNode resultJson = om.readTree(result);
-        assertThat(resultJson.get("result").asText(), is("0x0a0b"));
+        assertThat(resultJson.get("result").asText(), is("0xd6b391704355efdd37c5630638dc4d3798fc8fa98d60a0c02f45f0aa988e641f"));
     }
 
     @Test

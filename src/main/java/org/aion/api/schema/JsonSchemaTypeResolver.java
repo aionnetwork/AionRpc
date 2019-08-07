@@ -54,7 +54,7 @@ public class JsonSchemaTypeResolver {
 
         // couldn't figure out the type, time to give up and fail
         throw new SchemaException(
-            "Expected schema to have 'type', '$ref', or 'oneOf' but it " +
+            "Expected schema to have 'type', '$ref', or 'allOf' but it " +
                 "was missing.  Schema was: " + schema.asText());
     }
 

@@ -9,6 +9,8 @@ import org.aion.api.schema.JsonSchemaTypeResolver;
 import java.io.IOException;
 import org.aion.api.schema.RootTypes;
 import org.aion.api.schema.RpcType;
+import org.aion.api.schema.SchemaValidationException;
+import org.aion.api.schema.SchemaValidator;
 import org.aion.api.schema.TypeRegistry;
 
 import static org.aion.api.serialization.Utils.bytesToHex;
@@ -19,6 +21,7 @@ public class ResponseSerializer {
     private final JsonNode typesRoot; // not used yet, will be needed when types other than DATA,QUANTITY are added
     private final RpcMethodSchemaLoader schemaLoader;
     private final TypeRegistry tr = new TypeRegistry();
+    private final SchemaValidator validator = new SchemaValidator();
 
     public ResponseSerializer(JsonNode typesRoot) {
         this(typesRoot, new RpcMethodSchemaLoader());
@@ -40,7 +43,8 @@ public class ResponseSerializer {
      * @return String representation of given response
      * @throws IOException if JsonSchema of the given method could not be loaded
      */
-    public String serialize(JsonRpcResponse resp, String method) throws IOException {
+    public String serialize(JsonRpcResponse resp, String method)
+    throws IOException, SchemaValidationException {
         JsonNode responseSchema = schemaLoader.loadResponseSchema(method);
 
         if(responseSchema.get("$ref") != null) {
@@ -48,8 +52,18 @@ public class ResponseSerializer {
 
             if (type.getRootType().equals(RootTypes.DATA)
                 || type.getRootType().equals(RootTypes.QUANTITY)) {
-                // Handle the built-in json types DATA, QUANTITY directly
+
                 String resultJson = String.format("\"0x%s\"", bytesToHex((byte[]) resp.getResult()));
+                if(! validator.validate(responseSchema, om.readTree(resultJson))) {
+                    throw new SchemaValidationException(String.format(
+                        "Response data did not conform to the schema for the requested RPC method.  "
+                            + "This is a bug in either the Response Serializer or RPC method implementation.  "
+                            + "method: %s.  Response data: %s",
+                        method,
+                        resultJson
+                    ));
+                }
+
                 // TODO: Jackson it
                 return String.format("{"
                         + "\"jsonrpc\": \"%s\","

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import org.aion.api.schema.SchemaValidationException;
 import org.junit.Test;
 
 import java.net.URL;
@@ -27,7 +28,7 @@ public class ResponseSerializerTest {
     }
 
     @Test
-    public void testSerializeDerivedScalar() throws Exception {
+    public void testSerializeDerivedScalarWhenSchemaOk() throws Exception {
         JsonNode responseSchema = om.readTree(
             "{\"$ref\" : \"derived.json#/definitions/DATA32\"} ");
         when(schemaLoader.loadResponseSchema("testMethod"))
@@ -41,6 +42,22 @@ public class ResponseSerializerTest {
 
         JsonNode resultJson = om.readTree(result);
         assertThat(resultJson.get("result").asText(), is("0xd6b391704355efdd37c5630638dc4d3798fc8fa98d60a0c02f45f0aa988e641f"));
+    }
+
+    @Test(expected = SchemaValidationException.class)
+    public void testSerializeDerivedScalarWhenFailingSchemaCheck() throws Exception {
+        JsonNode responseSchema = om.readTree(
+            "{\"$ref\" : \"derived.json#/definitions/DATA32\"} ");
+        when(schemaLoader.loadResponseSchema("testMethod"))
+            .thenReturn(responseSchema);
+
+        ResponseSerializer unit = new ResponseSerializer(typesSchemaRoot, schemaLoader);
+
+        byte[] responseBytes = Utils.hexStringToByteArray("0x12");
+        String result = unit.serialize(
+            new JsonRpcResponse(responseBytes, "1.0"), "testMethod");
+
+        om.readTree(result);
     }
 
     @Test

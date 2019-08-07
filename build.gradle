@@ -58,3 +58,10 @@ task generateAll {
     dependsOn genRpcProcessor
     dependsOn genRpcInterface
 }
+
+// WIP
+task(genDataHolders, dependsOn: 'classes', type: JavaExec) {
+   main = 'org.aion.api.codegen.GenerateDataHolders'
+   classpath = sourceSets.main.runtimeClasspath
+}
+

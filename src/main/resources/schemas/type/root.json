@@ -27,7 +27,13 @@
     },
 
     "BOOLEAN": {
-      "type": "boolean"
+      "type": "boolean",
+      "$comment": "Not a type intended to be used directly by users of RPC framework, but used internally by the framework"
+    },
+
+    "OBJECT": {
+      "type": "object",
+      "$comment": "Not a type intended to be used directly by users of RPC framework, but used internally by the framework"
     }
 
   }

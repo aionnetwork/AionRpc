@@ -3,6 +3,10 @@ package org.aion.api.schema;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.aion.api.serialization.Utils;
 
 import java.io.IOException;
@@ -39,9 +43,10 @@ public class JsonSchemaTypeResolver {
         if (schema.has("type")) {
             String type = schema.get("type").asText();
             switch (type) {
-                case "object": // coming soon
+                case "object": return resolveObject(schema, types);
                 case "array": // not supported yet
                 case "number": // disallowed
+                    throw new SchemaRestrictionException("Not allowed to use type " + type);
                 default:
                     throw new UnsupportedOperationException(
                         "Unsupported or disallowed 'type' parameter: " + type);
@@ -88,6 +93,8 @@ public class JsonSchemaTypeResolver {
             } else if (ref.getTypeName().equals("Boolean")) {
                 return RootTypes.BOOLEAN;
             }
+            // we dont check for Object because we don't allow users to
+            // use that base type directly
         }
 
         return null;
@@ -149,11 +156,48 @@ public class JsonSchemaTypeResolver {
 
         JsonSchemaRef ref = new JsonSchemaRef(allOf.asText());
         return new RpcType(
-                ref,
+                ref, // <-- TODO this actually makes no sense at all
                 baseResolved,
                 new JsonSchemaRef(constraint.asText()),
                 baseResolved.getJavaTypeNames(),
                 List.of()
+        );
+    }
+
+    private RpcType resolveObject(JsonNode schema,
+                                  TypeRegistry types) {
+        JsonNode props = schema.get("properties");
+        List<String> propNames = new LinkedList<>();
+        List<String> propTypes = new LinkedList<>();
+
+        if(! schema.has("properties")) {
+            throw new SchemaRestrictionException("Types derived from object must specify properties");
+        }
+
+        for(Iterator<Entry<String, JsonNode>> iter = props.fields(); iter.hasNext(); ) {
+            Map.Entry<String, JsonNode> prop = iter.next();
+
+            JsonNode propDefinition = prop.getValue();
+            RpcType propType = resolveSchema(propDefinition, types);
+
+            if(propType.getJavaTypeNames().size() != 1
+                || propType.getRootType().equals(RootTypes.OBJECT)) {
+                throw new SchemaRestrictionException(
+                    "object properties must be scalars.  If you need to use to "
+                        + "a nested object, create a custom type representing the "
+                        + "inner object; then, in the outer object, refer to use it using"
+                        + "JsonSchema $ref keyword. ");
+            }
+
+            propTypes.add(propType.getJavaTypeNames().get(0));
+            propNames.add(prop.getKey());
+        }
+        return new RpcType(
+            new JsonSchemaRef(schema.asText()), // <-- makes no sense, re-think this parameter
+            RootTypes.OBJECT,
+            null,
+            propTypes,
+            propNames
         );
     }
 }

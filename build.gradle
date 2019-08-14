@@ -44,24 +44,49 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
-task(genRpcProcessor, dependsOn: 'classes', type: JavaExec) {
-   main = 'org.aion.api.codegen.GenerateRpcProcessor'
-   classpath = sourceSets.main.runtimeClasspath
+def printStdoutWarning() { 
+            println """
+kernelRoot was not specified, so generated sources will be printed to stdout.
+Use -PkernelRoot=/path/to/aion/root to write source files into their expected
+location.  
+"""
 }
 
-task(genRpcInterface, dependsOn: 'classes', type: JavaExec) {
-   main = 'org.aion.api.codegen.GenerateRpcInterface'
-   classpath = sourceSets.main.runtimeClasspath
+task genRpcProcessor(type: JavaExec) {
+    dependsOn 'classes'
+    main = 'org.aion.api.codegen.GenerateRpcProcessor'
+    classpath = sourceSets.main.runtimeClasspath
+
+    if(project.hasProperty("kernelRoot")) { 
+        def subpath = "/modApiServer/src/org/aion/api/server/rpc2/autogen/RpcProcessor2.java"
+        standardOutput = new FileOutputStream(project.getProperty("kernelRoot") + subpath)
+    } else {
+        printStdoutWarning()
+    }
+}
+
+task genRpcInterface(type: JavaExec) {
+    dependsOn 'classes'
+    main = 'org.aion.api.codegen.GenerateRpcInterface'
+    classpath = sourceSets.main.runtimeClasspath
+
+    if(project.hasProperty("kernelRoot")) { 
+        def subpath = "/modApiServer/src/org/aion/api/server/rpc2/autogen/Rpc.java"
+        standardOutput = new FileOutputStream(project.getProperty("kernelRoot") + subpath)
+    } else {
+        printStdoutWarning()
+    }
+}
+
+// WIP
+task genDataHolders(type: JavaExec) {
+    dependsOn 'classes'
+    main = 'org.aion.api.codegen.GenerateDataHolders'
+    //classpath = sourceSets.main.runtimeClasspath
 }
 
 task generateAll {
     dependsOn genRpcProcessor
     dependsOn genRpcInterface
-}
-
-// WIP
-task(genDataHolders, dependsOn: 'classes', type: JavaExec) {
-   main = 'org.aion.api.codegen.GenerateDataHolders'
-   classpath = sourceSets.main.runtimeClasspath
 }
 

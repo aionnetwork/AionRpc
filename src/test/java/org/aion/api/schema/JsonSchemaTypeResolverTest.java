@@ -24,9 +24,8 @@ public class JsonSchemaTypeResolverTest {
 
         NamedRpcType result = unit.resolveNamedSchema(schema, refs);
         assertThat(result.getName(), is("BOOLEAN"));
-        assertThat(result.getJavaTypeNames().size(), is(1));
-        assertThat(result.getJavaTypeNames().get(0), is("boolean"));
-        assertThat(result.getJavaFieldNames().isEmpty(), is(true));
+        assertThat(result.getJavaTypeName(), is("boolean"));
+        assertThat(result.getContainedFields().isEmpty(), is(true));
     }
 
     @Test
@@ -37,9 +36,8 @@ public class JsonSchemaTypeResolverTest {
 
         NamedRpcType result = unit.resolveNamedSchema(schema, refs);
         assertThat(result.getName(), is("BOOLEAN"));
-        assertThat(result.getJavaTypeNames().size(), is(1));
-        assertThat(result.getJavaTypeNames().get(0), is("boolean"));
-        assertThat(result.getJavaFieldNames().isEmpty(), is(true));
+        assertThat(result.getJavaTypeName(), is("boolean"));
+        assertThat(result.getContainedFields().isEmpty(), is(true));
     }
 
     // -- Types rooted in DATA --------------------------------------------------------------------
@@ -52,9 +50,8 @@ public class JsonSchemaTypeResolverTest {
 
         NamedRpcType result = unit.resolveNamedSchema(schema, refs);
         assertThat(result.getName(), is("DATA"));
-        assertThat(result.getJavaTypeNames().size(), is(1));
-        assertThat(result.getJavaTypeNames().get(0), is("byte[]"));
-        assertThat(result.getJavaFieldNames().isEmpty(), is(true));
+        assertThat(result.getJavaTypeName(), is("byte[]"));
+        assertThat(result.getContainedFields().isEmpty(), is(true));
     }
 
     // -- Types rooted in QUANTITY ----------------------------------------------------------------
@@ -67,9 +64,8 @@ public class JsonSchemaTypeResolverTest {
 
         NamedRpcType result = unit.resolveNamedSchema(schema, refs);
         assertThat(result.getName(), is("QUANTITY"));
-        assertThat(result.getJavaTypeNames().size(), is(1));
-        assertThat(result.getJavaTypeNames().get(0), is("java.math.BigInteger"));
-        assertThat(result.getJavaFieldNames().isEmpty(), is(true));
+        assertThat(result.getJavaTypeName(), is("java.math.BigInteger"));
+        assertThat(result.getContainedFields().isEmpty(), is(true));
     }
 
     @Test
@@ -80,9 +76,8 @@ public class JsonSchemaTypeResolverTest {
 
         NamedRpcType result = unit.resolveNamedSchema(schema, refs);
         assertThat(result.getName(), is("DATA32"));
-        assertThat(result.getJavaTypeNames().size(), is(1));
-        assertThat(result.getJavaTypeNames().get(0), is("byte[]"));
-        assertThat(result.getJavaFieldNames().isEmpty(), is(true));
+        assertThat(result.getJavaTypeName(), is("byte[]"));
+        assertThat(result.getContainedFields().isEmpty(), is(true));
     }
 
     // -- Types rooted in OBJECT ------------------------------------------------------------------
@@ -98,26 +93,20 @@ public class JsonSchemaTypeResolverTest {
 
 
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
-        RpcType result = unit.resolveSchema(schema, refs);
+        RpcType result = unit.resolveSchema(schema, refs, true);
 
-        assertThat(result.getJavaTypeNames().size(), is(3));
-        assertThat(result.getJavaTypeNames().size(), is(result.getJavaFieldNames().size()));
+        assertThat(result.getContainedFields().size(), is(3));
 
-        assertThat(result.getJavaFieldNames().contains("myQuantityField"), is(true));
-        assertThat(result.getJavaFieldNames().contains("myDataField"), is(true));
-        assertThat(result.getJavaFieldNames().contains("myBooleanField"), is(true));
+        assertThat(result.getContainedFields().get(0).getName(), is("myQuantityField"));
+        assertThat(result.getContainedFields().get(1).getName(), is("myDataField"));
+        assertThat(result.getContainedFields().get(2).getName(), is("myBooleanField"));
 
-        // the order in which the parameters appear in result.javaNames and result.javaTypes
-        // does not matter, but it does matter that the index of a particular java name
-        // is using the same index for the corresponding java type
-        Map<String, String> resultMap = new HashMap<>();
-        for(int ix = 0; ix < result.getJavaFieldNames().size(); ++ix) {
-            resultMap.put(result.getJavaFieldNames().get(ix), result.getJavaTypeNames().get(ix));
-        }
-
-        assertThat(resultMap.get("myQuantityField"), is("java.math.BigInteger"));
-        assertThat(resultMap.get("myDataField"), is("byte[]"));
-        assertThat(resultMap.get("myBooleanField"), is("boolean"));
+        assertThat(result.getContainedFields().get(0).getType().getJavaTypeName(),
+            is("java.math.BigInteger"));
+        assertThat(result.getContainedFields().get(1).getType().getJavaTypeName(),
+            is("byte[]"));
+        assertThat(result.getContainedFields().get(2).getType().getJavaTypeName(),
+            is("boolean"));
     }
 
     @Test
@@ -131,14 +120,19 @@ public class JsonSchemaTypeResolverTest {
             "} " +
             "}");
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
-        RpcType result = unit.resolveSchema(schema, refs);
+        RpcType result = unit.resolveSchema(schema, refs, true);
 
-        assertThat(result.getJavaFieldNames().size(), is(2));
-        assertThat(result.getJavaFieldNames().contains("firstProp"), is(true));
-        assertThat(result.getJavaFieldNames().contains("secondProp"), is(true));
-        assertThat(result.getJavaTypeNames().size(), is(2));
-        assertThat(result.getJavaTypeNames().get(0), is("boolean"));
-        assertThat(result.getJavaTypeNames().get(1), is("boolean"));
+        assertThat(result.getContainedFields().size(), is(2));
+        assertThat(result.getContainedFields().get(0).getName(),
+            is("firstProp"));
+        assertThat(result.getContainedFields().get(1).getName(),
+            is("secondProp"));
+        assertThat(result.getContainedFields().get(0).getType().getJavaTypeName(),
+            is("boolean"));
+        assertThat(result.getContainedFields().get(1).getType().getJavaTypeName(),
+            is("boolean"));
+        assertThat(result.getJavaTypeName(),
+            is(JsonSchemaTypeResolver.JAVA_CLASS_NAME_PLACEHOLDER));
     }
 
     @Test(expected = SchemaRestrictionException.class)

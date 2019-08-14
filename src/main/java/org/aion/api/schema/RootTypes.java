@@ -14,32 +14,32 @@ public class RootTypes {
             new JsonSchemaRef("derived.json#/definitions/DATA"),
             null,
             null,
-            List.of("byte[]"),
-            List.of()
+            List.of(),
+            "byte[]"
     );
 
     public static final NamedRpcType QUANTITY =  new NamedRpcType(
             new JsonSchemaRef("derived.json#/definitions/QUANTITY"),
             null,
             null,
-            List.of("java.math.BigInteger"),
-            List.of()
+            List.of(),
+        "java.math.BigInteger"
     );
 
     public static final NamedRpcType BOOLEAN =  new NamedRpcType(
         new JsonSchemaRef("derived.json#/definitions/BOOLEAN"),
         null,
         null,
-        List.of("boolean"),
-        List.of()
+        List.of(),
+        "boolean"
     );
 
     public static final NamedRpcType OBJECT = new NamedRpcType(
         new JsonSchemaRef("derived.json#/definitions/OBJECT"),
         null,
         null,
-        List.of("java.lang.Object"),
-        List.of()
+        List.of(),
+        "java.lang.Object"
     );
 
 }

@@ -53,7 +53,8 @@ public class RequestDeserializerTest {
             om,
             typesSchemaRoot,
             schemaLoader,
-            validator);
+            validator,
+            new RpcTypeDeserializer());
         JsonRpcRequest result = unit.deserialize(payload);
 
         assertThat(result.getMethod(), is("testMethod"));
@@ -87,7 +88,8 @@ public class RequestDeserializerTest {
             om,
             typesSchemaRoot,
             schemaLoader,
-            validator);
+            validator,
+            new RpcTypeDeserializer());
 
         try {
             JsonRpcRequest result = unit.deserialize(payload);
@@ -118,7 +120,8 @@ public class RequestDeserializerTest {
             om,
             typesSchemaRoot,
             schemaLoader,
-            validator);
+            validator,
+            new RpcTypeDeserializer());
         unit.deserialize(payload);
     }
 }

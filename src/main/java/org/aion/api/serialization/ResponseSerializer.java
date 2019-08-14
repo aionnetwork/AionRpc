@@ -1,19 +1,17 @@
 package org.aion.api.serialization;
 
+import static org.aion.api.serialization.Utils.bytesToHex;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
-import org.aion.api.schema.JsonSchemaRef;
-import org.aion.api.schema.JsonSchemaTypeResolver;
-
 import java.io.IOException;
+import org.aion.api.schema.JsonSchemaTypeResolver;
 import org.aion.api.schema.RootTypes;
 import org.aion.api.schema.RpcType;
 import org.aion.api.schema.SchemaValidationException;
 import org.aion.api.schema.SchemaValidator;
 import org.aion.api.schema.TypeRegistry;
-
-import static org.aion.api.serialization.Utils.bytesToHex;
 
 public class ResponseSerializer {
     private final ObjectMapper om = new ObjectMapper();

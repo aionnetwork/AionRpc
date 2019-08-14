@@ -45,13 +45,13 @@ public class GenerateDataHolders {
 
         for(NamedRpcType type : retrieveObjectDerivedRpcTypes()) {
             List<List<String>> typeNamePairs = new LinkedList<>();
-            for(int ix = 0; ix < type.getJavaTypeNames().size(); ++ix) {
-                typeNamePairs.add(
-                    List.of(
-                        type.getJavaTypeNames().get(ix),
-                        type.getJavaFieldNames().get(ix)
-                ));
-            }
+//            for(int ix = 0; ix < type.getJavaTypeNames().size(); ++ix) {
+//                typeNamePairs.add(
+//                    List.of(
+//                        type.getJavaTypeNames().get(ix),
+//                        type.getJavaFieldNames().get(ix)
+//                ));
+//            }
 
             Map<String, Object> ftlMap = new HashMap<>();
             ftlMap.put("javaClassName", type.getName());

@@ -2,6 +2,7 @@ package org.aion.api.schema;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,42 +27,32 @@ public class RpcType {
     private final RpcType baseType;
     private final JsonSchemaRef constraints;
 
-//    private final JsonNode typesDefinitions;
+    private final List<Field> containedFields;
 
     // Java characterization
-    private final List<String> javaFieldNames;
-    private final List<String> javaTypeNames;
+    private final String javaTypeName;
 
-    public List<String> getJavaFieldNames() {
-        return javaFieldNames;
+    public String getJavaTypeName() {
+        return javaTypeName;
     }
 
-    public List<String> getJavaTypeNames() {
-        return javaTypeNames;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param definition
-     * @param baseType
-     * @param constraints
-     * @param javaFieldNames
-     * @param javaTypeNames
-     */
     public RpcType(JsonSchemaRef definition,
                    RpcType baseType,
                    JsonSchemaRef constraints,
-                   List<String> javaTypeNames,
-                   List<String> javaFieldNames) {
-//        checkRefs(definition, baseTypeSchema, constraints, typesDefin itions);
+                   List<Field> containedFields,
+                   String javaTypeName) {
+//        checkRefs(definition, baseTypeSchema, constraints, typesDefinitions);
+
+        if(baseType == null || ! RootTypes.OBJECT.equals(baseType.getRootType())) {
+            Preconditions.checkArgument(containedFields.isEmpty(),
+                "containedFields must be empty unless type is rooted in OBJECT");
+        }
 
         this.definition = definition;
         this.baseType = baseType;
         this.constraints = constraints;
-        this.javaFieldNames = javaFieldNames;
-        this.javaTypeNames = javaTypeNames;
-//        this.typesDefinitions = typesDefinitions;
+        this.containedFields = new LinkedList<>(containedFields);
+        this.javaTypeName = javaTypeName;
     }
 
     private static void checkRefs(JsonSchemaRef definition,
@@ -94,6 +85,10 @@ public class RpcType {
         return constraints;
     }
 
+    public List<Field> getContainedFields() {
+        return containedFields;
+    }
+
     public RpcType getRootType() {
         if(isRootType()) {
             return this;
@@ -122,12 +117,12 @@ public class RpcType {
         return Objects.equals(definition, rpcType.definition) &&
             Objects.equals(baseType, rpcType.baseType) &&
             Objects.equals(constraints, rpcType.constraints) &&
-            Objects.equals(javaFieldNames, rpcType.javaFieldNames) &&
-            Objects.equals(javaTypeNames, rpcType.javaTypeNames);
+            Objects.equals(containedFields, rpcType.containedFields) &&
+            Objects.equals(javaTypeName, rpcType.javaTypeName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(definition, baseType, constraints, javaFieldNames, javaTypeNames);
+        return Objects.hash(definition, baseType, constraints, containedFields, javaTypeName);
     }
 }

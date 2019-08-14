@@ -24,6 +24,7 @@ public class RequestDeserializer {
     private final JsonNode typesRoot;
     private final RpcMethodSchemaLoader schemaLoader;
     private final SchemaValidator validator;
+    private final RpcTypeDeserializer deserializer;
 
     /**
      *
@@ -36,7 +37,8 @@ public class RequestDeserializer {
         this(new ObjectMapper(),
             typesRoot,
             new RpcMethodSchemaLoader(),
-            new SchemaValidator()
+            new SchemaValidator(),
+            new RpcTypeDeserializer()
         );
     }
 
@@ -44,12 +46,14 @@ public class RequestDeserializer {
     RequestDeserializer(ObjectMapper om,
                         JsonNode typesRoot,
                         RpcMethodSchemaLoader schemaLoader,
-                        SchemaValidator validator) {
+                        SchemaValidator validator,
+                        RpcTypeDeserializer deserializer) {
         this.om = om;
         this.resolver = new JsonSchemaTypeResolver();
         this.typesRoot = typesRoot;
         this.schemaLoader = schemaLoader;
         this.validator = validator;
+        this.deserializer = deserializer;
     }
 
     /**
@@ -87,45 +91,8 @@ public class RequestDeserializer {
         TypeRegistry tr = new TypeRegistry();
 
         for(int ix = 0; ix < paramNodes.size(); ++ix) {
-            // TODO: only works with DATA and QUANTITY right now
-            JsonNode expectedTypeSchema = schemaParamNodes.get(ix);
-
-            // Check this param value against the schema for the param
-            if(! validator.validate(expectedTypeSchema, paramNodes.get(ix))) {
-                throw new SchemaValidationException(
-                    String.format("Schema validation error at parameter '%s'",
-                        paramNodes.get(ix).toString()));
-            }
-
-            NamedRpcType rpcType = resolver.resolveNamedSchema(expectedTypeSchema, tr);
-            RpcType root = rpcType.getRootType();
-
-            // For everything type except those rooted in Object, the serialization
-            // procedure is the same as their root type.  Just the validation part
-            // is different, which has already happened.
-
-            if(root.equals(RootTypes.BOOLEAN)) {
-
-                reqParams[ix] = paramNodes.get(ix).asBoolean();
-
-            } else if(root.equals(RootTypes.DATA)) {
-
-                String nodeVal = paramNodes.get(ix).asText();
-                reqParams[ix] = hexStringToByteArray(nodeVal);
-
-            } else if(root.equals(RootTypes.QUANTITY)) {
-
-                String nodeVal = paramNodes.get(ix).asText();
-                // need to pad it to even-length so it may be converted to byte[]
-                if(nodeVal.length() % 2 != 0) {
-                    nodeVal = nodeVal.replaceFirst("0x", "0x0");
-                }
-                reqParams[ix] = new BigInteger(hexStringToByteArray(nodeVal));
-
-            } else {
-                throw new UnsupportedOperationException(
-                        "Only DATA and QUANTITY types supported currently.");
-            }
+            reqParams[ix] = deserializer
+                .deserialize(paramNodes.get(ix), schemaParamNodes.get(ix), tr);
         }
 
         req.setParams(reqParams);

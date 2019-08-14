@@ -51,18 +51,18 @@ public class GenerateRpcInterface {
                     new JsonSchemaFixedMixedArrayResolver();
 
             // Parameter types to method signatures
-            List<Set<String>> inputTypes = arrayResolver
+            List<String> inputTypes = arrayResolver
                     .resolve(reqRoot.get("items"), visitedRefs)
                     .stream()
-                    .map(t -> new HashSet<>(t.getJavaTypeNames()))
+                    .map(t -> t.getJavaTypeName())
                     .collect(Collectors.toList());
 
             //TODO: Assuming every parameter always has the same type in the RPC method
-            List<String> arguments = Sets.cartesianProduct(inputTypes).iterator().next();
+//            List<String> arguments = Sets.cartesianProduct(inputTypes).iterator().next();
 
             RpcType retType = resolver.resolveSchema(rezRoot, visitedRefs);
             declarations.add(new JavaInterfaceMethodDeclaration(
-                    method, retType.getJavaTypeNames().get(0), arguments));
+                    method, retType.getJavaTypeName(), inputTypes));
 
             // Ftl setup for Request
         }

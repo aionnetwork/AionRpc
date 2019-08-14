@@ -65,7 +65,7 @@ public class GenerateRpcProcessor {
             RpcType retType = resolver.resolveSchema(rezRoot, visitedRefs);
 
             //TODO Asuming no multi-value types for now.
-            javaMethodCalls.add(new JavaMethodCall(paramTypes, retType.getJavaTypeNames().get(0), method));
+            javaMethodCalls.add(new JavaMethodCall(paramTypes, retType.getJavaTypeName(), method));
         }
 
 
@@ -91,7 +91,7 @@ public class GenerateRpcProcessor {
         for(Iterator<JsonNode> it = items.elements(); it.hasNext(); ) {
             JsonNode param = it.next();
             RpcType t = resolver.resolveSchema(param, refsVisited);
-            paramTypes.add(t.getJavaTypeNames().get(0)); // TODO Assuming no multi-value types for now.
+            paramTypes.add(t.getJavaTypeName()); // TODO Assuming no multi-value types for now.
         }
 
         return paramTypes;

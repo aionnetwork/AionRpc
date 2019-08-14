@@ -4,10 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
-
 import java.io.IOException;
 import java.net.URL;
-import org.aion.api.schema.JsonSchemaRef;
 
 public class Utils {
     // adapted from

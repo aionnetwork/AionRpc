@@ -1,6 +1,7 @@
 package org.aion.api.schema;
 
 import java.util.List;
+import java.util.Objects;
 
 public class NamedRpcType extends RpcType {
     private String name;
@@ -8,16 +9,14 @@ public class NamedRpcType extends RpcType {
     public NamedRpcType(JsonSchemaRef definition,
                         RpcType baseType,
                         JsonSchemaRef constraints,
-                        List<String> javaTypeNames,
-                        List<String> javaFieldNames) {
+                        List<Field> containedFields,
+                        String javaTypeName) {
         super(
             definition,
             baseType,
             constraints,
-            javaTypeNames,
-            javaFieldNames
-        );
-
+            containedFields,
+            javaTypeName);
         this.name = definition.getTypeName();
     }
 
@@ -27,8 +26,8 @@ public class NamedRpcType extends RpcType {
             type.getDefinition(),
             type.getBaseType(),
             type.getConstraints(),
-            type.getJavaTypeNames(),
-            type.getJavaFieldNames()
+            type.getContainedFields(),
+            type.getJavaTypeName()
         );
         this.name = name;
     }
@@ -37,4 +36,23 @@ public class NamedRpcType extends RpcType {
         return name;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof NamedRpcType)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        NamedRpcType that = (NamedRpcType) o;
+        return name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), name);
+    }
 }

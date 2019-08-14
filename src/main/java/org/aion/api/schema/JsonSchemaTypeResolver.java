@@ -3,6 +3,7 @@ package org.aion.api.schema;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
@@ -22,20 +23,37 @@ import java.util.List;
  *
  * TODO:
  *  - TypeRegistry consistency check
- *  - handle Object
- *
  */
 public class JsonSchemaTypeResolver {
     private ObjectMapper om = new ObjectMapper();
 
+    @VisibleForTesting
+    static final String JAVA_CLASS_NAME_PLACEHOLDER = "<UNKNOWN>";
+
+    /**
+     * Create the {@link RpcType} that represents an Aion RPC Type from its
+     * canonical JsonSchema definition.
+     *
+     * @param schema JsonSchema definition of the type
+     * @param types The types that have already been resolved.  At completion of this method, any
+     *              type names visited will be added to this collection.  Not used for anything meaningful
+     *              right now, but should be used in the future to ensure type name consistency
+     *              and/or do memoization to avoid constantly re-loading the JsonSchemas.
+     * @return
+     */
     public RpcType resolveSchema(JsonNode schema,
                                  TypeRegistry types) {
-        RpcType baseType;
+        return resolveSchema(schema, types, false);
+    }
 
+    @VisibleForTesting
+    RpcType resolveSchema(JsonNode schema,
+                                 TypeRegistry types,
+                                 boolean alloweUnnamedObjects) {
         // if we recognize given schema as a base type, then return that base type
-        baseType = resolveBaseType(schema);
-        if(baseType != null) {
-            return baseType;
+        RpcType baseTypeResolution = resolveBaseType(schema);
+        if(baseTypeResolution != null) {
+            return baseTypeResolution;
         }
 
         // otherwise, it is some type derived from a base type.
@@ -43,7 +61,20 @@ public class JsonSchemaTypeResolver {
         if (schema.has("type")) {
             String type = schema.get("type").asText();
             switch (type) {
-                case "object": return resolveObject(schema, types);
+                case "object":
+                    RpcType resolved = resolveObject(schema, types);
+                    if(! alloweUnnamedObjects &&
+                        JAVA_CLASS_NAME_PLACEHOLDER.equals(resolved.getJavaTypeName())) {
+
+                        // This happens if a schema contains a subschema that uses
+                        // object type directly.  We should never return a RpcType in
+                        // this case because it won't be usable.
+                        throw new SchemaRestrictionException(
+                            "An OBJECT must not contain any property that use a schema deriving directly from"
+                                + "OBJECT.  Instead, create a new custom type that derives OBJECT and use a "
+                                + "$ref to that type.");
+                    }
+                    return resolved;
                 case "array": // not supported yet
                 case "number": // disallowed
                     throw new SchemaRestrictionException("Not allowed to use type " + type);
@@ -123,14 +154,27 @@ public class JsonSchemaTypeResolver {
         }
 
         RpcType resolved = resolveSchema(definition, types);
-        return new NamedRpcType(ref.getTypeName(), resolved);
+        if(RootTypes.OBJECT.equals(resolved.getBaseType())) {
+            // resolveObject() does not know how to fill in the Java type name and uses a
+            // placeholder.  The name is based upon the name of the RpcType, which isn't known
+            // until now.  So fill it in on its behalf.
+            String name = ref.getTypeName();
+            return new NamedRpcType(ref.getTypeName(), new RpcType(
+                resolved.getDefinition(),
+                resolved.getBaseType(),
+                resolved.getConstraints(),
+                resolved.getContainedFields(),
+                name));
+        } else {
+            return new NamedRpcType(ref.getTypeName(), resolved);
+        }
     }
 
     private RpcType resolveAllOf(JsonNode schema,
                                  TypeRegistry types) {
         JsonNode allOf = schema.get("allOf");
-        if(allOf.size() > 2) {
-            throw new SchemaRestrictionException("allOf must have only two elements");
+        if(allOf.size() != 2) {
+            throw new SchemaRestrictionException("allOf must have exactly two elements");
         }
 
         JsonNode first = allOf.get(0);
@@ -159,16 +203,19 @@ public class JsonSchemaTypeResolver {
                 ref, // <-- TODO this actually makes no sense at all
                 baseResolved,
                 new JsonSchemaRef(constraint.asText()),
-                baseResolved.getJavaTypeNames(),
-                List.of()
+                List.of(),
+                baseResolved.getJavaTypeName()
         );
     }
 
+    /**
+     * @implNote The resolved RpcType does not have a Java Class name at this point.  It is
+     * the responsibility of {@link #resolveRef(JsonNode, TypeRegistry)} to define.
+     */
     private RpcType resolveObject(JsonNode schema,
                                   TypeRegistry types) {
         JsonNode props = schema.get("properties");
-        List<String> propNames = new LinkedList<>();
-        List<String> propTypes = new LinkedList<>();
+        List<Field> fields = new LinkedList<>();
 
         if(! schema.has("properties")) {
             throw new SchemaRestrictionException("Types derived from object must specify properties");
@@ -176,28 +223,17 @@ public class JsonSchemaTypeResolver {
 
         for(Iterator<Entry<String, JsonNode>> iter = props.fields(); iter.hasNext(); ) {
             Map.Entry<String, JsonNode> prop = iter.next();
-
             JsonNode propDefinition = prop.getValue();
-            RpcType propType = resolveSchema(propDefinition, types);
-
-            if(propType.getJavaTypeNames().size() != 1
-                || propType.getRootType().equals(RootTypes.OBJECT)) {
-                throw new SchemaRestrictionException(
-                    "object properties must be scalars.  If you need to use to "
-                        + "a nested object, create a custom type representing the "
-                        + "inner object; then, in the outer object, refer to use it using"
-                        + "JsonSchema $ref keyword. ");
-            }
-
-            propTypes.add(propType.getJavaTypeNames().get(0));
-            propNames.add(prop.getKey());
+            fields.add(new Field(prop.getKey(),
+                resolveSchema(propDefinition, types)));
         }
-        return new RpcType(
+
+        return new NamedRpcType(
             new JsonSchemaRef(schema.asText()), // <-- makes no sense, re-think this parameter
             RootTypes.OBJECT,
             null,
-            propTypes,
-            propNames
+            fields,
+            JAVA_CLASS_NAME_PLACEHOLDER
         );
     }
 }

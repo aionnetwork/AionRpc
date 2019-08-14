@@ -14,29 +14,29 @@ public class RpcTypeTest {
             new JsonSchemaRef("whatever.json#/definitions/WHATEVERTYPE"),
             null,
             new JsonSchemaRef("whatever.json#/definitions/WHATEVERCONSTRAINT"),
-            List.of("what.ever.type"),
-            List.of("whatevername")
+            List.of(),
+            "whatevername"
         );
         RpcType child = new RpcType(
             new JsonSchemaRef("whatever.json#/definitions/WHATEVERTYPE"),
             root,
             new JsonSchemaRef("whatever.json#/definitions/WHATEVERCONSTRAINT"),
-            List.of("what.ever.type"),
-            List.of("whatevername")
+            List.of(),
+            "whatevername"
         );
         RpcType grandchild = new RpcType(
             new JsonSchemaRef("whatever.json#/definitions/WHATEVERTYPE"),
             child,
             new JsonSchemaRef("whatever.json#/definitions/WHATEVERCONSTRAINT"),
-            List.of("what.ever.type"),
-            List.of("whatevername")
+            List.of(),
+            "whatevername"
         );
         RpcType greatgrandchild = new RpcType(
             new JsonSchemaRef("whatever.json#/definitions/WHATEVERTYPE"),
             grandchild,
             new JsonSchemaRef("whatever.json#/definitions/WHATEVERCONSTRAINT"),
-            List.of("what.ever.type"),
-            List.of("whatevername")
+            List.of(),
+            "whatevername"
         );
 
         assertThat(greatgrandchild.getRootType(), is(root));
@@ -48,8 +48,8 @@ public class RpcTypeTest {
             new JsonSchemaRef("whatever.json#/definitions/WHATEVERTYPE"),
             null,
             new JsonSchemaRef("whatever.json#/definitions/WHATEVERCONSTRAINT"),
-            List.of("what.ever.type"),
-            List.of("whatevername")
+            List.of(),
+            "whatevername"
         );
 
         assertThat(root.getRootType(), is(root));

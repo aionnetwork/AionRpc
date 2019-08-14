@@ -22,10 +22,10 @@ import java.util.Objects;
 public class RpcType {
 
     // JsonSchema definition
-    private final JsonSchemaRef definition;
+    private final JsonNode definition;
 
     private final RpcType baseType;
-    private final JsonSchemaRef constraints;
+    private final JsonNode constraints;
 
     private final List<Field> containedFields;
 
@@ -36,9 +36,9 @@ public class RpcType {
         return javaTypeName;
     }
 
-    public RpcType(JsonSchemaRef definition,
+    public RpcType(JsonNode definition,
                    RpcType baseType,
-                   JsonSchemaRef constraints,
+                   JsonNode constraints,
                    List<Field> containedFields,
                    String javaTypeName) {
 //        checkRefs(definition, baseTypeSchema, constraints, typesDefinitions);
@@ -73,7 +73,7 @@ public class RpcType {
         }
     }
 
-    public JsonSchemaRef getDefinition() {
+    public JsonNode getDefinition() {
         return definition;
     }
 
@@ -81,7 +81,7 @@ public class RpcType {
         return baseType;
     }
 
-    public JsonSchemaRef getConstraints() {
+    public JsonNode getConstraints() {
         return constraints;
     }
 

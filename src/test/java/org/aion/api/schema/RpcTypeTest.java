@@ -3,38 +3,41 @@ package org.aion.api.schema;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.junit.Test;
 
 public class RpcTypeTest {
+    private ObjectMapper om = new ObjectMapper();
 
     @Test
     public void getRootType() {
         RpcType root = new RpcType(
-            new JsonSchemaRef("whatever.json#/definitions/WHATEVERTYPE"),
+            om.createObjectNode(),
             null,
-            new JsonSchemaRef("whatever.json#/definitions/WHATEVERCONSTRAINT"),
+            om.createObjectNode(),
             List.of(),
             "whatevername"
         );
         RpcType child = new RpcType(
-            new JsonSchemaRef("whatever.json#/definitions/WHATEVERTYPE"),
+            om.createObjectNode(),
             root,
-            new JsonSchemaRef("whatever.json#/definitions/WHATEVERCONSTRAINT"),
+            om.createObjectNode(),
             List.of(),
             "whatevername"
         );
         RpcType grandchild = new RpcType(
-            new JsonSchemaRef("whatever.json#/definitions/WHATEVERTYPE"),
+            om.createObjectNode(),
             child,
-            new JsonSchemaRef("whatever.json#/definitions/WHATEVERCONSTRAINT"),
+            om.createObjectNode(),
             List.of(),
             "whatevername"
         );
         RpcType greatgrandchild = new RpcType(
-            new JsonSchemaRef("whatever.json#/definitions/WHATEVERTYPE"),
+            om.createObjectNode(),
             grandchild,
-            new JsonSchemaRef("whatever.json#/definitions/WHATEVERCONSTRAINT"),
+            om.createObjectNode(),
             List.of(),
             "whatevername"
         );
@@ -45,9 +48,9 @@ public class RpcTypeTest {
     @Test
     public void getRootTypeSelf() {
         RpcType root = new RpcType(
-            new JsonSchemaRef("whatever.json#/definitions/WHATEVERTYPE"),
+            om.createObjectNode(),
             null,
-            new JsonSchemaRef("whatever.json#/definitions/WHATEVERCONSTRAINT"),
+            om.createObjectNode(),
             List.of(),
             "whatevername"
         );

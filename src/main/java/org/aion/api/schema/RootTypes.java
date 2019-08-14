@@ -1,6 +1,9 @@
 package org.aion.api.schema;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.util.List;
+import org.aion.api.serialization.Utils;
 
 /**
  * The 'root' types of RPC Autogeneration framework.
@@ -9,37 +12,55 @@ import java.util.List;
  *
  */
 public class RootTypes {
+    private static final ObjectMapper om = new ObjectMapper();
 
-    public static final NamedRpcType DATA =  new NamedRpcType(
-            new JsonSchemaRef("derived.json#/definitions/DATA"),
-            null,
-            null,
-            List.of(),
-            "byte[]"
-    );
+    public static final NamedRpcType DATA;
+    public static final NamedRpcType QUANTITY;
+    public static final NamedRpcType BOOLEAN;
+    public static final NamedRpcType OBJECT;
 
-    public static final NamedRpcType QUANTITY =  new NamedRpcType(
-            new JsonSchemaRef("derived.json#/definitions/QUANTITY"),
-            null,
-            null,
-            List.of(),
-        "java.math.BigInteger"
-    );
-
-    public static final NamedRpcType BOOLEAN =  new NamedRpcType(
-        new JsonSchemaRef("derived.json#/definitions/BOOLEAN"),
-        null,
-        null,
-        List.of(),
-        "boolean"
-    );
-
-    public static final NamedRpcType OBJECT = new NamedRpcType(
-        new JsonSchemaRef("derived.json#/definitions/OBJECT"),
-        null,
-        null,
-        List.of(),
-        "java.lang.Object"
-    );
-
+    static {
+        try {
+            DATA = new NamedRpcType(
+                "DATA",
+                Utils.loadSchema(om,
+                    new JsonSchemaRef("derived.json#/definitions/DATA")),
+                null,
+                null,
+                List.of(),
+                "byte[]"
+            );
+            QUANTITY = new NamedRpcType(
+                "QUANTITY",
+                Utils.loadSchema(om,
+                    new JsonSchemaRef("derived.json#/definitions/QUANTITY")),
+                null,
+                null,
+                List.of(),
+                "java.math.BigInteger"
+            );
+            BOOLEAN = new NamedRpcType(
+                "BOOLEAN",
+                Utils.loadSchema(om,
+                    new JsonSchemaRef("derived.json#/definitions/BOOLEAN")),
+                null,
+                null,
+                List.of(),
+                "boolean"
+            );
+            OBJECT = new NamedRpcType(
+                "OBJECT",
+                Utils.loadSchema(om,
+                    new JsonSchemaRef("derived.json#/definitions/OBJECT")),
+                null,
+                null,
+                List.of(),
+                "java.lang.Object"
+            );
+        } catch (IOException ioe) {
+            // TODO This seems like a terrible idea
+            throw new RuntimeException(
+                "Initialization error: Can't load schemas of base types.", ioe);
+        }
+    }
 }

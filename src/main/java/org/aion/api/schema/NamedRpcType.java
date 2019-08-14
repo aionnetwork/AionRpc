@@ -1,14 +1,17 @@
 package org.aion.api.schema;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Objects;
 
 public class NamedRpcType extends RpcType {
     private String name;
 
-    public NamedRpcType(JsonSchemaRef definition,
+    public NamedRpcType(
+                        String name,
+                        JsonNode definition,
                         RpcType baseType,
-                        JsonSchemaRef constraints,
+                        JsonNode constraints,
                         List<Field> containedFields,
                         String javaTypeName) {
         super(
@@ -17,7 +20,7 @@ public class NamedRpcType extends RpcType {
             constraints,
             containedFields,
             javaTypeName);
-        this.name = definition.getTypeName();
+        this.name = name;
     }
 
     public NamedRpcType(String name,

@@ -198,11 +198,10 @@ public class JsonSchemaTypeResolver {
 
         RpcType baseResolved = resolveSchema(base, types);
 
-        JsonSchemaRef ref = new JsonSchemaRef(allOf.asText());
         return new RpcType(
-                ref, // <-- TODO this actually makes no sense at all
+                allOf,
                 baseResolved,
-                new JsonSchemaRef(constraint.asText()),
+                constraint,
                 List.of(),
                 baseResolved.getJavaTypeName()
         );
@@ -228,8 +227,8 @@ public class JsonSchemaTypeResolver {
                 resolveSchema(propDefinition, types)));
         }
 
-        return new NamedRpcType(
-            new JsonSchemaRef(schema.asText()), // <-- makes no sense, re-think this parameter
+        return new RpcType(
+            schema, // <-- makes no sense, re-think this parameter
             RootTypes.OBJECT,
             null,
             fields,

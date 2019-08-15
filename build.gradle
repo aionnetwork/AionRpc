@@ -78,15 +78,41 @@ task genRpcInterface(type: JavaExec) {
     }
 }
 
-// WIP
+task genDeserializer(type: JavaExec) { 
+    dependsOn 'classes'
+    main = 'org.aion.api.codegen.GenerateDeserializer'
+    classpath = sourceSets.main.runtimeClasspath
+
+    if(project.hasProperty("kernelRoot")) { 
+        def subpath = "/modApiServer/src/org/aion/api/server/rpc2/autogen/TemplatedSerializer.java"
+        standardOutput = new FileOutputStream(project.getProperty("kernelRoot") + subpath)
+    } else {
+        printStdoutWarning()
+    }
+}
+
 task genDataHolders(type: JavaExec) {
     dependsOn 'classes'
     main = 'org.aion.api.codegen.GenerateDataHolders'
-    //classpath = sourceSets.main.runtimeClasspath
+    classpath = sourceSets.main.runtimeClasspath
+
+    if(project.hasProperty("kernelRoot")) { 
+        args project.getProperty("kernelRoot")
+    } 
 }
 
 task generateAll {
     dependsOn genRpcProcessor
     dependsOn genRpcInterface
+    dependsOn genDataHolders
+    dependsOn genDeserializer
 }
 
+jar {
+  from sourceSets.main.allSource
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}

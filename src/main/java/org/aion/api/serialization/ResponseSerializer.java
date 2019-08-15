@@ -2,10 +2,16 @@ package org.aion.api.serialization;
 
 import static org.aion.api.serialization.Utils.bytesToHex;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
+import java.math.BigInteger;
+
 import org.aion.api.schema.JsonSchemaTypeResolver;
 import org.aion.api.schema.RootTypes;
 import org.aion.api.schema.RpcType;
@@ -30,6 +36,11 @@ public class ResponseSerializer {
                               RpcMethodSchemaLoader schemaLoader) {
         this.typesRoot = typesRoot;
         this.schemaLoader = schemaLoader;
+
+        SimpleModule customSerializers = new SimpleModule();
+        customSerializers.addSerializer(byte[].class, new BytesSerializer());
+        customSerializers.addSerializer(BigInteger.class, new BigIntSerializer());
+        om.registerModule(customSerializers);
     }
 
     /**
@@ -98,5 +109,41 @@ public class ResponseSerializer {
         throw new UnsupportedOperationException(
             "Don't know how to serialize return type.  Return type schema: "
                 + responseSchema.toString());
+    }
+
+    private static class BigIntSerializer extends StdSerializer<BigInteger> {
+        public BigIntSerializer() {
+            this(null);
+        }
+
+        public BigIntSerializer(Class<BigInteger> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(BigInteger value,
+                              JsonGenerator gen,
+                              SerializerProvider provider)
+        throws IOException {
+            gen.writeString("0x" + value.toString(16));
+        }
+    }
+
+    private static class BytesSerializer extends StdSerializer<byte[]> {
+        public BytesSerializer() {
+            this(null);
+        }
+
+        public BytesSerializer(Class<byte[]> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(byte[] value,
+                              JsonGenerator gen,
+                              SerializerProvider provider)
+        throws IOException {
+            gen.writeString("0x" + bytesToHex(value));
+        }
     }
 }

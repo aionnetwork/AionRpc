@@ -1,21 +1,23 @@
+package org.aion.api.server.rpc2.autogen.pod;
+
 public class ${javaClassName} {
 <#list fields as f>
-    private ${f[0]} ${f[1]};
+    private ${f.type.javaTypeName} ${f.name};
 </#list>
 
     public ${javaClassName}(
 <#list fields as f>
-        ${f[0]} ${f[1]}<#if (f_has_next)>,</#if>
+        ${f.type.javaTypeName} ${f.name}<#if (f_has_next)>,</#if>
 </#list>
     ) {
 <#list fields as f>
-        this.${f[1]} = ${f[1]};
+        this.${f.name} = ${f.name};
 </#list>
     }
 
 <#list fields as f>
-    public ${f[0]} get${f[1]?cap_first}() {
-        return this.${f[1]};
+    public ${f.type.javaTypeName} get${f.name?cap_first}() {
+        return this.${f.name};
     }
 
 </#list>

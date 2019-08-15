@@ -13,7 +13,7 @@ import org.aion.api.schema.SchemaValidationException;
 import org.aion.api.schema.SchemaValidator;
 import org.aion.api.schema.TypeRegistry;
 
-public class RpcTypeDeserializer {
+public abstract class RpcTypeDeserializer {
     private final SchemaValidator validator;
     protected final JsonSchemaTypeResolver resolver;
 
@@ -28,11 +28,11 @@ public class RpcTypeDeserializer {
     }
 
     public Object deserialize(JsonNode node,
-                              JsonNode expectedTypeSchema,// or should we use RpcType instead?
+                              NamedRpcType type,// or should we use RpcType instead?
                               TypeRegistry tr)
     throws SchemaValidationException {
         try {
-            if (!validator.validate(expectedTypeSchema, node)) {
+            if (!validator.validate(type.getDefinition(), node)) {
                 throw new SchemaValidationException(
                     String.format("Schema validation error at parameter '%s'", node.toString()));
             }
@@ -41,8 +41,8 @@ public class RpcTypeDeserializer {
                 "JSON parse error.  Input json: ", node.toString()), jpe);
         }
 
-        NamedRpcType rpcType = resolver.resolveNamedSchema(expectedTypeSchema, tr);
-        RpcType root = rpcType.getRootType();
+//        NamedRpcType rpcType = resolver.resolveNamedSchema(expectedTypeSchema, tr);
+        RpcType root = type.getRootType();
 
         // For everything type except those rooted in Object, the serialization
         // procedure is the same as their root type.  Just the validation part
@@ -61,16 +61,14 @@ public class RpcTypeDeserializer {
             }
             return new BigInteger(hexStringToByteArray(nodeVal));
         } else if (root.equals(RootTypes.OBJECT)) {
-            // do something with objectDeserializer
-            return null;
+            return deserializeObject(node, type, tr);
         }
 
         throw new UnsupportedOperationException("Unsupported type");
     }
 
-    private Object deserializeObject(JsonNode node,
-                                     JsonNode expectedTypeSchema,
-                                     TypeRegistry tr) {
-        return null;
-    }
+    protected abstract Object deserializeObject(JsonNode node,
+                                                NamedRpcType expectedTypeSchema,
+                                                TypeRegistry tr)
+    throws SchemaValidationException;
 }

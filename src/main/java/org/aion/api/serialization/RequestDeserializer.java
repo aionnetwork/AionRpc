@@ -20,7 +20,7 @@ import static org.aion.api.serialization.Utils.hexStringToByteArray;
 
 public class RequestDeserializer {
     private final ObjectMapper om;
-    private final JsonSchemaTypeResolver resolver;
+    protected final JsonSchemaTypeResolver resolver;
     private final JsonNode typesRoot;
     private final RpcMethodSchemaLoader schemaLoader;
     private final SchemaValidator validator;
@@ -33,12 +33,12 @@ public class RequestDeserializer {
      * Expected to contain an object named {@code definitions} that contains
      * subschemas of all types that will be referenced (via JsonSchema keyword "$ref").
      */
-    public RequestDeserializer(JsonNode typesRoot) {
+    public RequestDeserializer(RpcTypeDeserializer deserializer) {
         this(new ObjectMapper(),
-            typesRoot,
+            null,
             new RpcMethodSchemaLoader(),
             new SchemaValidator(),
-            new RpcTypeDeserializer()
+                deserializer
         );
     }
 
@@ -92,7 +92,8 @@ public class RequestDeserializer {
 
         for(int ix = 0; ix < paramNodes.size(); ++ix) {
             reqParams[ix] = deserializer
-                .deserialize(paramNodes.get(ix), schemaParamNodes.get(ix), tr);
+                .deserialize(paramNodes.get(ix),
+                        resolver.resolveNamedSchema(schemaParamNodes.get(ix), tr), tr);
         }
 
         req.setParams(reqParams);

@@ -81,6 +81,29 @@ public class JsonSchemaTypeResolverTest {
     }
 
     // -- Types rooted in OBJECT ------------------------------------------------------------------
+    @Test
+    public void resolveObjectThrowsIfNoNameGiven() throws Exception {
+        // if this fails, check that the test is executing with working directory
+        // as AION_RPC_ROOT/src/test.  Loading the file this way because loading
+        // test resources doesn't seem to work...
+        JsonNode schema = om.readTree(new File(
+                "src/test/resources/test-schemas/object-with-quantity-data-boolean.json"));
+        TypeRegistry refs = new TypeRegistry();
+
+
+        JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
+
+        // to prove that the object works when name given
+        unit.resolveSchema(schema, refs, "MyObject");
+
+        boolean excepted = false;
+        try {
+            unit.resolveSchema(schema, refs);
+        } catch (SchemaRestrictionException ex) {
+            excepted = true;
+        }
+        assertThat("should have thrown exception if object nme not given", excepted, is(true));
+    }
 
     @Test
     public void resolveObjectWithPropertiesOfManyTypes() throws Exception {
@@ -93,7 +116,7 @@ public class JsonSchemaTypeResolverTest {
 
 
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
-        RpcType result = unit.resolveSchema(schema, refs, true);
+        RpcType result = unit.resolveSchema(schema, refs, "MyObject");
 
         assertThat(result.getContainedFields().size(), is(3));
 
@@ -120,7 +143,7 @@ public class JsonSchemaTypeResolverTest {
             "} " +
             "}");
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
-        RpcType result = unit.resolveSchema(schema, refs, true);
+        RpcType result = unit.resolveSchema(schema, refs, "MyObject");
 
         assertThat(result.getContainedFields().size(), is(2));
         assertThat(result.getContainedFields().get(0).getName(),
@@ -131,8 +154,6 @@ public class JsonSchemaTypeResolverTest {
             is("boolean"));
         assertThat(result.getContainedFields().get(1).getType().getJavaTypeName(),
             is("boolean"));
-        assertThat(result.getJavaTypeName(),
-            is(JsonSchemaTypeResolver.JAVA_CLASS_NAME_PLACEHOLDER));
     }
 
     @Test(expected = SchemaRestrictionException.class)
@@ -145,7 +166,7 @@ public class JsonSchemaTypeResolverTest {
             "} " +
             "}");
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
-        unit.resolveSchema(schema, refs);
+        unit.resolveSchema(schema, refs, "SomeObject");
     }
 
     @Test(expected = SchemaRestrictionException.class)
@@ -153,7 +174,7 @@ public class JsonSchemaTypeResolverTest {
         TypeRegistry refs = new TypeRegistry();
         JsonNode schema = om.readTree("{\"type\":\"object\"}");
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
-        unit.resolveSchema(schema, refs);
+        unit.resolveSchema(schema, refs, "SomeObject");
     }
 
     // -- unsupported Javascript built-in scalars ---------------------------------------

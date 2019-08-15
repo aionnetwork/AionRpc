@@ -1,3 +1,5 @@
 getseed
 submitseed
 submitsignature
+eth_getTransactionByHash2
+eth_call2

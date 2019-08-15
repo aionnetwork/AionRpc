@@ -26,6 +26,36 @@
         "MyData": {"$ref": "derived.json#/definitions/DATA32"},
         "MyQuantity": {"$ref": "root.json#/definitions/QUANTITY"}
       }
+    },
+
+    "Transaction": {
+      "type": "object",
+      "properties": {
+        "blockHash": {"$ref": "derived.json#/definitions/DATA32"},
+        "blockNumber": {"$ref": "derived.json#/definitions/QUANTITY"},
+        "from": {"$ref": "derived.json#/definitions/DATA32"},
+        "nrg": {"$ref": "derived.json#/definitions/QUANTITY"},
+        "nrgPrice": {"$ref": "derived.json#/definitions/QUANTITY"},
+        "gas": {"$ref": "derived.json#/definitions/QUANTITY"},
+        "gasPrice": {"$ref": "derived.json#/definitions/QUANTITY"},
+        "hash": {"$ref": "derived.json#/definitions/DATA32"},
+        "input": {"$ref": "derived.json#/definitions/DATA"},
+        "nonce": {"$ref": "derived.json#/definitions/QUANTITY"},
+        "to": {"$ref": "derived.json#/definitions/DATA32"},
+        "transactionIndex": {"$ref": "derived.json#/definitions/QUANTITY"},
+        "value": {"$ref": "derived.json#/definitions/QUANTITY"},
+        "timestamp": {"$ref": "derived.json#/definitions/QUANTITY"}
+      }
+    },
+
+    "CallRequest": {
+      "type": "object",
+      "$comment": "Prototype version; don't use yet!",
+      "properties": {
+        "to": {"$ref": "derived.json#/definitions/DATA32"},
+        "value": {"$ref": "root.json#/definitions/QUANTITY"},
+        "data": {"$ref": "root.json#/definitions/DATA"}
+      }
     }
 
   }

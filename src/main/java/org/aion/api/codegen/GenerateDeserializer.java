@@ -2,19 +2,15 @@ package org.aion.api.codegen;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import freemarker.template.Configuration;
-import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import freemarker.template.Version;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -22,64 +18,39 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.aion.api.schema.Field;
+import java.util.stream.Collectors;
+import org.aion.api.schema.JsonSchemaFixedMixedArrayResolver;
 import org.aion.api.schema.JsonSchemaTypeResolver;
 import org.aion.api.schema.NamedRpcType;
 import org.aion.api.schema.RootTypes;
 import org.aion.api.schema.RpcType;
 import org.aion.api.schema.TypeRegistry;
-import org.everit.json.schema.loader.SchemaLoader;
 
-public class GenerateDataHolders {
+public class GenerateDeserializer {
     private final ObjectMapper om;
     private final JsonSchemaTypeResolver resolver;
     private final TypeRegistry tr;
 
     public static void main(String[] args) throws Exception {
-         System.exit(new GenerateDataHolders().go(args));
+        System.exit(new GenerateDeserializer().go());
     }
 
-    public GenerateDataHolders() {
+    public GenerateDeserializer() {
         this.om = new ObjectMapper();
         this.resolver = new JsonSchemaTypeResolver();
         this.tr = new TypeRegistry();
     }
 
-    String subpath = "/modApiServer/src/org/aion/api/server/rpc2/autogen/pod/";
-
-    public int go(String[] args) throws IOException, TemplateException {
-        boolean useStdout = args.length != 1;
-
-        File outputRoot = null;
-        Writer consoleWriter = null;
-        if(useStdout) {
-            consoleWriter = new OutputStreamWriter(System.out);
-        } else {
-            outputRoot = new File(args[0] + subpath);
-            if(! Files.exists(outputRoot.toPath())) {
-                System.out.println("Directory does not exist, so giving up: " + outputRoot.toString());
-            }
-        }
-
+    public int go() throws Exception {
         Configuration freemarker = configureFreemarker();
 
-        for(NamedRpcType type : retrieveObjectDerivedRpcTypes()) {
-            String filename = type.getName() + ".java";
-            if(outputRoot != null) {
-                consoleWriter = new OutputStreamWriter(
-                    new FileOutputStream(outputRoot.toString() + "/" + filename));
-            }
+        Map<String, Object> ftlMap = new HashMap<>();
+        ftlMap.put("types", retrieveObjectDerivedRpcTypes());
 
-            List<Field> fields = type.getContainedFields();
-
-            Map<String, Object> ftlMap = new HashMap<>();
-            ftlMap.put("javaClassName", type.getName());
-            ftlMap.put("fields", fields);
-
-            System.out.println("// == " + filename + " == ");
-
-            freemarker.getTemplate("RpcDataHolder.java.ftl").process(ftlMap, consoleWriter);
-        }
+        // Apply Freemarker template; output the result
+        System.out.println("// == TemplatedDeserializer.java == ");
+        Writer consoleWriter = new OutputStreamWriter(System.out);
+        freemarker.getTemplate("TemplatedDeserializer.java.ftl").process(ftlMap, consoleWriter);
 
         return 0;
     }
@@ -110,12 +81,11 @@ public class GenerateDataHolders {
 
     private Configuration configureFreemarker() {
         Configuration cfg = new Configuration();
-        cfg.setClassForTemplateLoading(GenerateRpcProcessor.class, "/templates");
+        cfg.setClassForTemplateLoading(GenerateDeserializer.class, "/templates");
         cfg.setIncompatibleImprovements(new Version(2, 3, 20));
         cfg.setDefaultEncoding("UTF-8");
         cfg.setLocale(Locale.US);
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
         return cfg;
     }
-
 }

@@ -8,6 +8,7 @@ import com.google.common.io.Resources;
 import org.aion.api.schema.SchemaValidationException;
 import org.junit.Test;
 
+import java.math.BigInteger;
 import java.net.URL;
 
 import static org.hamcrest.core.Is.is;
@@ -74,5 +75,29 @@ public class ResponseSerializerTest {
 
         JsonNode resultJson = om.readTree(result);
         assertThat(resultJson.get("result").asText(), is("true"));
+    }
+
+    @Test
+    public void testSerializeObjectWithBigInt() throws Exception {
+        JsonNode responseSchema = om.readTree(
+                "{\"$ref\" : \"derived.json#/definitions/SomeStruct\"} ");
+        when(schemaLoader.loadResponseSchema("testMethod"))
+                .thenReturn(responseSchema);
+        class SomeClass {
+            BigInteger bigInt = BigInteger.valueOf(15);
+
+            public BigInteger getBigInt() {
+                return bigInt;
+            }
+        }
+
+
+        ResponseSerializer unit = new ResponseSerializer(typesSchemaRoot, schemaLoader);
+        String result = unit.serialize(
+                new JsonRpcResponse(new SomeClass(), "1.0"),
+                "testMethod");
+
+        System.out.println(result);
+
     }
 }

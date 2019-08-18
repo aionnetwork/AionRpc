@@ -58,9 +58,7 @@ public class RequestDeserializerTest {
             "}";
         RequestDeserializer unit = new RequestDeserializer(
             om,
-            typesSchemaRoot,
             schemaLoader,
-            validator,
             new TestDeserializer()
         );
         JsonRpcRequest result = unit.deserialize(payload);
@@ -93,12 +91,10 @@ public class RequestDeserializerTest {
             "  \"jsonrpc\": \"2.0\"\n" +
             "}";
         RequestDeserializer unit = new RequestDeserializer(
-            om,
-            typesSchemaRoot,
-            schemaLoader,
-            validator,
-            new TestDeserializer()
-         );
+                om,
+                schemaLoader,
+                new TestDeserializer()
+        );
 
         try {
             JsonRpcRequest result = unit.deserialize(payload);
@@ -126,11 +122,9 @@ public class RequestDeserializerTest {
             "  \"jsonrpc\": \"2.0\"\n" +
             "}";
         RequestDeserializer unit = new RequestDeserializer(
-            om,
-            typesSchemaRoot,
-            schemaLoader,
-            validator,
-            new TestDeserializer()
+                om,
+                schemaLoader,
+                new TestDeserializer()
         );
         unit.deserialize(payload);
     }
@@ -158,9 +152,7 @@ public class RequestDeserializerTest {
                 "}";
         RequestDeserializer unit = new RequestDeserializer(
                 om,
-                typesSchemaRoot,
                 schemaLoader,
-                validator,
                 new TestDeserializer()
         );
         JsonRpcRequest result = unit.deserialize(payload);
@@ -200,9 +192,7 @@ public class RequestDeserializerTest {
                 "}";
         RequestDeserializer unit = new RequestDeserializer(
                 om,
-                typesSchemaRoot,
                 schemaLoader,
-                validator,
                 new TestDeserializer()
         );
         unit.deserialize(payload);

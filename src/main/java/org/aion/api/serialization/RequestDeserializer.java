@@ -16,22 +16,24 @@ import org.aion.api.schema.TypeRegistry;
 public class RequestDeserializer {
     private final ObjectMapper om;
     protected final JsonSchemaTypeResolver resolver;
-    private final JsonNode typesRoot;
     private final RpcMethodSchemaLoader schemaLoader;
-    private final SchemaValidator validator;
     private final RpcTypeDeserializer deserializer;
+
+    public RequestDeserializer(RpcTypeDeserializer rpcTypeDeserializer) {
+        this(
+                new ObjectMapper(),
+                new RpcMethodSchemaLoader(),
+                rpcTypeDeserializer
+        );
+    }
 
     @VisibleForTesting
     RequestDeserializer(ObjectMapper om,
-                        JsonNode typesRoot,
                         RpcMethodSchemaLoader schemaLoader,
-                        SchemaValidator validator,
                         RpcTypeDeserializer deserializer) {
         this.om = om;
         this.resolver = new JsonSchemaTypeResolver();
-        this.typesRoot = typesRoot;
         this.schemaLoader = schemaLoader;
-        this.validator = validator;
         this.deserializer = deserializer;
     }
 

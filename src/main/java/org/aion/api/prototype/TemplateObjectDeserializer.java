@@ -9,20 +9,19 @@ import org.aion.api.serialization.RpcTypeDeserializer;
 public class TemplateObjectDeserializer extends RpcTypeDeserializer {
     @Override
     public Object deserializeObject(JsonNode value,
-                                    NamedRpcType type,
-                                    TypeRegistry tr) throws SchemaValidationException {
+                                    NamedRpcType type) throws SchemaValidationException {
         switch(type.getName()) {
             case "SomeStruct":
                 return new SomeStruct(
                     (byte[]) super.deserialize(
                         value.get("MyData"),
-                        (NamedRpcType) type.getContainedFields().get(0).getType(),
-                        null
+                        (NamedRpcType) type.getContainedFields().get(0).getType()
+
                     ),
                     (java.math.BigInteger) super.deserialize(
                         value.get("MyQuantity"),
-                        (NamedRpcType) type.getContainedFields().get(1).getType(),
-                        null)
+                        (NamedRpcType) type.getContainedFields().get(1).getType()
+                        )
                 );
             default:
                 throw new UnsupportedOperationException(

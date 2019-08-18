@@ -33,7 +33,6 @@ public class GenerateRpcInterface {
         String types = Resources.toString(typesUrl, Charsets.UTF_8);
         JsonNode typesSchemaRoot = mapper.readTree(types);
 
-        TypeRegistry visitedRefs = new TypeRegistry();
         List<String> methods = loadMethodList();
         List<JavaInterfaceMethodDeclaration> declarations = new LinkedList<>();
 
@@ -52,7 +51,7 @@ public class GenerateRpcInterface {
 
             // Parameter types to method signatures
             List<String> inputTypes = arrayResolver
-                    .resolve(reqRoot.get("items"), visitedRefs)
+                    .resolve(reqRoot.get("items"))
                     .stream()
                     .map(t -> t.getJavaTypeName())
                     .collect(Collectors.toList());
@@ -60,7 +59,7 @@ public class GenerateRpcInterface {
             //TODO: Assuming every parameter always has the same type in the RPC method
 //            List<String> arguments = Sets.cartesianProduct(inputTypes).iterator().next();
 
-            RpcType retType = resolver.resolveSchema(rezRoot, visitedRefs);
+            RpcType retType = resolver.resolveSchema(rezRoot);
             declarations.add(new JavaInterfaceMethodDeclaration(
                     method, retType.getJavaTypeName(), inputTypes));
 

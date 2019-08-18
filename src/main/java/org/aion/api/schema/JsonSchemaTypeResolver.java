@@ -31,19 +31,13 @@ public class JsonSchemaTypeResolver {
      * canonical JsonSchema definition.
      *
      * @param schema JsonSchema definition of the type
-     * @param types The types that have already been resolved.  At completion of this method, any
-     *              type names visited will be added to this collection.  Not used for anything meaningful
-     *              right now, but should be used in the future to ensure type name consistency
-     *              and/or do memoization to avoid constantly re-loading the JsonSchemas.
      * @return
      */
-    public RpcType resolveSchema(JsonNode schema,
-                                 TypeRegistry types) {
-        return resolveSchema(schema, types, null);
+    public RpcType resolveSchema(JsonNode schema) {
+        return resolveSchema(schema, null);
     }
 
     public RpcType resolveSchema(JsonNode schema,
-                                 TypeRegistry types,
                                  @Nullable String javaTypeName) {
         // if we recognize given schema as a base type, then return that base type
         RpcType baseTypeResolution = resolveBaseType(schema);
@@ -62,7 +56,7 @@ public class JsonSchemaTypeResolver {
                                 "Can't resolve an object without being given the Java type name.  Schema: "
                                 + schema.toString());
                     }
-                    return resolveObject(javaTypeName, schema, types);
+                    return resolveObject(javaTypeName, schema);
                 case "array": // not supported yet
                 case "number": // disallowed
                     throw new SchemaRestrictionException("Not allowed to use type " + type);
@@ -71,9 +65,9 @@ public class JsonSchemaTypeResolver {
                         "Unsupported or disallowed 'type' parameter: " + type);
             }
         } else if (schema.has("$ref")) {
-            return resolveRef(schema, types);
+            return resolveRef(schema);
         } else if (schema.has("allOf")) {
-            return resolveAllOf(schema, types);
+            return resolveAllOf(schema);
         }
 
         // couldn't figure out the type, time to give up and fail
@@ -82,15 +76,14 @@ public class JsonSchemaTypeResolver {
                 "was missing.  Schema was: " + schema.asText());
     }
 
-    public NamedRpcType resolveNamedSchema(JsonNode schema,
-                                           TypeRegistry types) {
+    public NamedRpcType resolveNamedSchema(JsonNode schema) {
         // if we recognize given schema as a base type, then return that base type
         NamedRpcType baseType = resolveBaseType(schema);
         if(baseType != null) {
             return baseType;
         }
 
-        return resolveRef(schema, types);
+        return resolveRef(schema);
     }
 
     private NamedRpcType resolveBaseType(JsonNode schema) {
@@ -119,8 +112,7 @@ public class JsonSchemaTypeResolver {
         return null;
     }
 
-    private NamedRpcType resolveRef(JsonNode subschema,
-                                    TypeRegistry types) {
+    private NamedRpcType resolveRef(JsonNode subschema) {
         // item uses "$ref"
         // we need to dereference it by following the pointer in order
         // to construct the RpcType
@@ -141,12 +133,11 @@ public class JsonSchemaTypeResolver {
             );
         }
 
-        RpcType resolved = resolveSchema(definition, types, ref.getTypeName());
+        RpcType resolved = resolveSchema(definition, ref.getTypeName());
         return new NamedRpcType(ref.getTypeName(), resolved);
     }
 
-    private RpcType resolveAllOf(JsonNode schema,
-                                 TypeRegistry types) {
+    private RpcType resolveAllOf(JsonNode schema) {
         JsonNode allOf = schema.get("allOf");
         if(allOf.size() != 2) {
             throw new SchemaRestrictionException("allOf must have exactly two elements");
@@ -171,7 +162,7 @@ public class JsonSchemaTypeResolver {
                     " use type, $ref, or allOf");
         }
 
-        RpcType baseResolved = resolveSchema(base, types);
+        RpcType baseResolved = resolveSchema(base);
 
         return new RpcType(
                 schema, //allOf,
@@ -184,11 +175,10 @@ public class JsonSchemaTypeResolver {
 
     /**
      * @implNote The resolved RpcType does not have a Java Class name at this point.  It is
-     * the responsibility of {@link #resolveRef(JsonNode, TypeRegistry)} to define.
+     * the responsibility of {@link #resolveRef(JsonNode)} to define.
      */
     private RpcType resolveObject(String javaTypeName,
-                                  JsonNode schema,
-                                  TypeRegistry types) {
+                                  JsonNode schema) {
         JsonNode props = schema.get("properties");
         List<Field> fields = new LinkedList<>();
 
@@ -200,7 +190,7 @@ public class JsonSchemaTypeResolver {
             Map.Entry<String, JsonNode> prop = iter.next();
             JsonNode propDefinition = prop.getValue();
             fields.add(new Field(prop.getKey(),
-                resolveSchema(propDefinition, types)));
+                resolveSchema(propDefinition)));
         }
 
         return new RpcType(

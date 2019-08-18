@@ -18,8 +18,7 @@ import org.aion.api.server.rpc2.autogen.pod.${t.name};
 public class TemplatedSerializer extends RpcTypeDeserializer {
     @Override
     public Object deserializeObject(JsonNode value,
-                                    NamedRpcType type,
-                                    TypeRegistry tr) throws SchemaValidationException {
+                                    NamedRpcType type) throws SchemaValidationException {
         switch(type.getName()) {
 <#list types as t>
             case "${t.name}":
@@ -27,8 +26,7 @@ public class TemplatedSerializer extends RpcTypeDeserializer {
 <#list t.containedFields as f>
                     (${f.type.javaTypeName}) super.deserialize(
                         value.get("${f.name}"),
-                        (NamedRpcType) type.getContainedFields().get(${f_index}).getType(),
-                        null
+                        (NamedRpcType) type.getContainedFields().get(${f_index}).getType()
                     )<#if (f_has_next)>,</#if>
 </#list>
                 );

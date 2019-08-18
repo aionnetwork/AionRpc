@@ -33,7 +33,6 @@ import org.everit.json.schema.loader.SchemaLoader;
 public class GenerateDataHolders {
     private final ObjectMapper om;
     private final JsonSchemaTypeResolver resolver;
-    private final TypeRegistry tr;
 
     public static void main(String[] args) throws Exception {
          System.exit(new GenerateDataHolders().go(args));
@@ -42,7 +41,6 @@ public class GenerateDataHolders {
     public GenerateDataHolders() {
         this.om = new ObjectMapper();
         this.resolver = new JsonSchemaTypeResolver();
-        this.tr = new TypeRegistry();
     }
 
     String subpath = "/modApiServer/src/org/aion/api/server/rpc2/autogen/pod/";
@@ -97,7 +95,7 @@ public class GenerateDataHolders {
             String name = entry.getKey();
             JsonNode def = entry.getValue();
 
-            RpcType type = resolver.resolveSchema(def, tr, name);
+            RpcType type = resolver.resolveSchema(def, name);
 
             if(type.getRootType().equals(RootTypes.OBJECT)) {
                 objectDerived.add(new NamedRpcType(name, type));

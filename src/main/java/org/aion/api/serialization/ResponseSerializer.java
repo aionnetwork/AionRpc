@@ -22,9 +22,7 @@ import org.aion.api.schema.TypeRegistry;
 public class ResponseSerializer {
     private final ObjectMapper om = new ObjectMapper();
     private final JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
-    private final JsonNode typesRoot; // not used yet, will be needed when types other than DATA,QUANTITY are added
     private final RpcMethodSchemaLoader schemaLoader;
-    private final TypeRegistry tr = new TypeRegistry();
     private final SchemaValidator validator = new SchemaValidator();
 
     public ResponseSerializer(JsonNode typesRoot) {
@@ -34,7 +32,6 @@ public class ResponseSerializer {
     @VisibleForTesting
     public ResponseSerializer(JsonNode typesRoot,
                               RpcMethodSchemaLoader schemaLoader) {
-        this.typesRoot = typesRoot;
         this.schemaLoader = schemaLoader;
 
         SimpleModule customSerializers = new SimpleModule();
@@ -57,7 +54,7 @@ public class ResponseSerializer {
         JsonNode responseSchema = schemaLoader.loadResponseSchema(method);
 
         if(responseSchema.get("$ref") != null) {
-            RpcType type = resolver.resolveSchema(responseSchema, tr);
+            RpcType type = resolver.resolveSchema(responseSchema);
 
             if (type.getRootType().equals(RootTypes.DATA)
                 || type.getRootType().equals(RootTypes.QUANTITY)) {

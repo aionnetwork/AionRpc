@@ -19,10 +19,9 @@ public class JsonSchemaTypeResolverTest {
     @Test
     public void resolveBaseTypeBooleanShorthand() throws Exception {
         JsonNode schema = om.readTree("{\"type\":\"boolean\"}");
-        TypeRegistry refs = new TypeRegistry();
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
 
-        NamedRpcType result = unit.resolveNamedSchema(schema, refs);
+        NamedRpcType result = unit.resolveNamedSchema(schema);
         assertThat(result.getName(), is("BOOLEAN"));
         assertThat(result.getJavaTypeName(), is("boolean"));
         assertThat(result.getContainedFields().isEmpty(), is(true));
@@ -34,7 +33,7 @@ public class JsonSchemaTypeResolverTest {
         TypeRegistry refs = new TypeRegistry();
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
 
-        NamedRpcType result = unit.resolveNamedSchema(schema, refs);
+        NamedRpcType result = unit.resolveNamedSchema(schema);
         assertThat(result.getName(), is("BOOLEAN"));
         assertThat(result.getJavaTypeName(), is("boolean"));
         assertThat(result.getContainedFields().isEmpty(), is(true));
@@ -48,7 +47,7 @@ public class JsonSchemaTypeResolverTest {
         TypeRegistry refs = new TypeRegistry();
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
 
-        NamedRpcType result = unit.resolveNamedSchema(schema, refs);
+        NamedRpcType result = unit.resolveNamedSchema(schema);
         assertThat(result.getName(), is("DATA"));
         assertThat(result.getJavaTypeName(), is("byte[]"));
         assertThat(result.getContainedFields().isEmpty(), is(true));
@@ -62,7 +61,7 @@ public class JsonSchemaTypeResolverTest {
         TypeRegistry refs = new TypeRegistry();
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
 
-        NamedRpcType result = unit.resolveNamedSchema(schema, refs);
+        NamedRpcType result = unit.resolveNamedSchema(schema);
         assertThat(result.getName(), is("QUANTITY"));
         assertThat(result.getJavaTypeName(), is("java.math.BigInteger"));
         assertThat(result.getContainedFields().isEmpty(), is(true));
@@ -74,7 +73,7 @@ public class JsonSchemaTypeResolverTest {
         TypeRegistry refs = new TypeRegistry();
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
 
-        NamedRpcType result = unit.resolveNamedSchema(schema, refs);
+        NamedRpcType result = unit.resolveNamedSchema(schema);
         assertThat(result.getName(), is("DATA32"));
         assertThat(result.getJavaTypeName(), is("byte[]"));
         assertThat(result.getContainedFields().isEmpty(), is(true));
@@ -94,11 +93,11 @@ public class JsonSchemaTypeResolverTest {
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
 
         // to prove that the object works when name given
-        unit.resolveSchema(schema, refs, "MyObject");
+        unit.resolveSchema(schema, "MyObject");
 
         boolean excepted = false;
         try {
-            unit.resolveSchema(schema, refs);
+            unit.resolveSchema(schema);
         } catch (SchemaRestrictionException ex) {
             excepted = true;
         }
@@ -116,7 +115,7 @@ public class JsonSchemaTypeResolverTest {
 
 
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
-        RpcType result = unit.resolveSchema(schema, refs, "MyObject");
+        RpcType result = unit.resolveSchema(schema, "MyObject");
 
         assertThat(result.getContainedFields().size(), is(3));
 
@@ -143,7 +142,7 @@ public class JsonSchemaTypeResolverTest {
             "} " +
             "}");
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
-        RpcType result = unit.resolveSchema(schema, refs, "MyObject");
+        RpcType result = unit.resolveSchema(schema, "MyObject");
 
         assertThat(result.getContainedFields().size(), is(2));
         assertThat(result.getContainedFields().get(0).getName(),
@@ -166,7 +165,7 @@ public class JsonSchemaTypeResolverTest {
             "} " +
             "}");
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
-        unit.resolveSchema(schema, refs, "SomeObject");
+        unit.resolveSchema(schema, "SomeObject");
     }
 
     @Test(expected = SchemaRestrictionException.class)
@@ -174,7 +173,7 @@ public class JsonSchemaTypeResolverTest {
         TypeRegistry refs = new TypeRegistry();
         JsonNode schema = om.readTree("{\"type\":\"object\"}");
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
-        unit.resolveSchema(schema, refs, "SomeObject");
+        unit.resolveSchema(schema, "SomeObject");
     }
 
     // -- unsupported Javascript built-in scalars ---------------------------------------
@@ -184,6 +183,6 @@ public class JsonSchemaTypeResolverTest {
         JsonNode schema = om.readTree("{\"type\":\"number\"}");
         TypeRegistry refs = new TypeRegistry();
         JsonSchemaTypeResolver unit = new JsonSchemaTypeResolver();
-        unit.resolveSchema(schema, refs);
+        unit.resolveSchema(schema);
     }
 }

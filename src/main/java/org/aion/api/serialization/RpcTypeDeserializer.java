@@ -28,8 +28,7 @@ public abstract class RpcTypeDeserializer {
     }
 
     public Object deserialize(JsonNode node,
-                              NamedRpcType type,// or should we use RpcType instead?
-                              TypeRegistry tr)
+                              NamedRpcType type)
     throws SchemaValidationException {
         try {
             if (!validator.validate(type.getDefinition(), node)) {
@@ -61,14 +60,13 @@ public abstract class RpcTypeDeserializer {
             }
             return new BigInteger(hexStringToByteArray(nodeVal));
         } else if (root.equals(RootTypes.OBJECT)) {
-            return deserializeObject(node, type, tr);
+            return deserializeObject(node, type);
         }
 
         throw new UnsupportedOperationException("Unsupported type");
     }
 
     protected abstract Object deserializeObject(JsonNode node,
-                                                NamedRpcType expectedTypeSchema,
-                                                TypeRegistry tr)
+                                                NamedRpcType expectedTypeSchema)
     throws SchemaValidationException;
 }

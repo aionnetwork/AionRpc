@@ -29,7 +29,6 @@ import org.aion.api.schema.TypeRegistry;
 public class GenerateDeserializer {
     private final ObjectMapper om;
     private final JsonSchemaTypeResolver resolver;
-    private final TypeRegistry tr;
 
     public static void main(String[] args) throws Exception {
         System.exit(new GenerateDeserializer().go());
@@ -38,7 +37,6 @@ public class GenerateDeserializer {
     public GenerateDeserializer() {
         this.om = new ObjectMapper();
         this.resolver = new JsonSchemaTypeResolver();
-        this.tr = new TypeRegistry();
     }
 
     public int go() throws Exception {
@@ -68,7 +66,7 @@ public class GenerateDeserializer {
             String name = entry.getKey();
             JsonNode def = entry.getValue();
 
-            RpcType type = resolver.resolveSchema(def, tr, name);
+            RpcType type = resolver.resolveSchema(def, name);
 
             if(type.getRootType().equals(RootTypes.OBJECT)) {
                 objectDerived.add(new NamedRpcType(name, type));

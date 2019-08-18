@@ -139,8 +139,7 @@ public class RequestDeserializerTest {
 
         @Override
         protected Object deserializeObject(JsonNode node,
-                                           NamedRpcType expectedTypeSchema,
-                                           TypeRegistry tr) throws SchemaValidationException {
+                                           NamedRpcType expectedTypeSchema) throws SchemaValidationException {
             throw new UnsupportedOperationException();
         }
     }

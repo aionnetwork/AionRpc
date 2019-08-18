@@ -26,22 +26,6 @@ public class RequestDeserializer {
     private final SchemaValidator validator;
     private final RpcTypeDeserializer deserializer;
 
-    /**
-     *
-     *
-     * @param typesRoot Root of a JSON schema structure that is a valid JsonSchema.
-     * Expected to contain an object named {@code definitions} that contains
-     * subschemas of all types that will be referenced (via JsonSchema keyword "$ref").
-     */
-    public RequestDeserializer(RpcTypeDeserializer deserializer) {
-        this(new ObjectMapper(),
-            null,
-            new RpcMethodSchemaLoader(),
-            new SchemaValidator(),
-                deserializer
-        );
-    }
-
     @VisibleForTesting
     RequestDeserializer(ObjectMapper om,
                         JsonNode typesRoot,
@@ -93,7 +77,7 @@ public class RequestDeserializer {
         for(int ix = 0; ix < paramNodes.size(); ++ix) {
             reqParams[ix] = deserializer
                 .deserialize(paramNodes.get(ix),
-                        resolver.resolveNamedSchema(schemaParamNodes.get(ix), tr), tr);
+                        resolver.resolveNamedSchema(schemaParamNodes.get(ix)));
         }
 
         req.setParams(reqParams);

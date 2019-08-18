@@ -38,16 +38,11 @@ public class GenerateRpcProcessor {
         ObjectMapper mapper = new ObjectMapper();
 
         // Get JsonSchema stuff
-        URL typesUrl = Resources.getResource("schemas/type/root.json");
-        String types = Resources.toString(typesUrl, Charsets.UTF_8);
-        JsonNode typesSchemaRoot = mapper.readTree(types);
-
-        TypeRegistry visitedRefs = new TypeRegistry();
         JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
 
-        Configuration freemarker = configureFreemarker();
+        Configuration freemarker = CodeGenUtils.configureFreemarker();
 
-        List<String> methods = loadMethodList();
+        List<String> methods = CodeGenUtils.loadMethodList();
         List<JavaMethodCall> javaMethodCalls = new LinkedList<>();
 
         Map<String, Object> ftlMap = new HashMap<>();
@@ -61,7 +56,7 @@ public class GenerateRpcProcessor {
             JsonNode rezRoot = new ObjectMapper().readTree(rez);
 
             List<String> paramTypes = resolveParamTypes(
-                reqRoot, visitedRefs, resolver);
+                reqRoot, resolver);
             RpcType retType = resolver.resolveSchema(rezRoot);
 
             //TODO Asuming no multi-value types for now.
@@ -76,7 +71,6 @@ public class GenerateRpcProcessor {
     }
 
     private List<String> resolveParamTypes(JsonNode requestSchema,
-                                          TypeRegistry refsVisited,
                                           JsonSchemaTypeResolver resolver) {
         // process each parameter in the param list using the JsonSchemaTypeResolver.
         // the top-level schema for the request itself can't use the resolver though,
@@ -95,23 +89,6 @@ public class GenerateRpcProcessor {
         }
 
         return paramTypes;
-    }
-
-    private Configuration configureFreemarker() {
-        Configuration cfg = new Configuration();
-        cfg.setClassForTemplateLoading(GenerateRpcProcessor.class, "/templates");
-        cfg.setIncompatibleImprovements(new Version(2, 3, 20));
-        cfg.setDefaultEncoding("UTF-8");
-        cfg.setLocale(Locale.US);
-        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-        return cfg;
-    }
-
-    private List<String> loadMethodList() throws IOException {
-        URL methodsUrl = Resources.getResource("methods.txt");
-        String methods = Resources.toString(methodsUrl, Charsets.UTF_8);
-        String[] methodList = methods.split("\n");
-        return Arrays.asList(methodList);
     }
 
 }

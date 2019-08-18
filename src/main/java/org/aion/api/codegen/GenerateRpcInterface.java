@@ -25,15 +25,9 @@ public class GenerateRpcInterface {
     public GenerateRpcInterface() { }
 
     public void generateRpcInterface() throws Exception {
-        Configuration freemarker = configureFreemarker();
+        Configuration freemarker = CodeGenUtils.configureFreemarker();
 
-        // Get JsonSchema stuff
-        ObjectMapper mapper = new ObjectMapper();
-        URL typesUrl = Resources.getResource("schemas/type/root.json");
-        String types = Resources.toString(typesUrl, Charsets.UTF_8);
-        JsonNode typesSchemaRoot = mapper.readTree(types);
-
-        List<String> methods = loadMethodList();
+        List<String> methods = CodeGenUtils.loadMethodList();
         List<JavaInterfaceMethodDeclaration> declarations = new LinkedList<>();
 
         for(String method: methods) {
@@ -73,23 +67,6 @@ public class GenerateRpcInterface {
         System.out.println("// == Rpc.java == ");
         Writer consoleWriter = new OutputStreamWriter(System.out);
         freemarker.getTemplate("Rpc.java.ftl").process(ftlMap, consoleWriter);
-    }
-
-    private Configuration configureFreemarker() {
-        Configuration cfg = new Configuration();
-        cfg.setClassForTemplateLoading(GenerateRpcProcessor.class, "/templates");
-        cfg.setIncompatibleImprovements(new Version(2, 3, 20));
-        cfg.setDefaultEncoding("UTF-8");
-        cfg.setLocale(Locale.US);
-        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-        return cfg;
-    }
-
-    private List<String> loadMethodList() throws IOException {
-        URL methodsUrl = Resources.getResource("methods.txt");
-        String methods = Resources.toString(methodsUrl, Charsets.UTF_8);
-        String[] methodList = methods.split("\n");
-        return Arrays.asList(methodList);
     }
 
 }

@@ -59,9 +59,9 @@ public class GenerateDataHolders {
             }
         }
 
-        Configuration freemarker = configureFreemarker();
+        Configuration freemarker = CodeGenUtils.configureFreemarker();
 
-        for(NamedRpcType type : retrieveObjectDerivedRpcTypes()) {
+        for(NamedRpcType type : CodeGenUtils.retrieveObjectDerivedRpcTypes(om, resolver)) {
             String filename = type.getName() + ".java";
             if(outputRoot != null) {
                 consoleWriter = new OutputStreamWriter(
@@ -80,40 +80,6 @@ public class GenerateDataHolders {
         }
 
         return 0;
-    }
-
-    private List<NamedRpcType> retrieveObjectDerivedRpcTypes() throws IOException {
-        // as per AionRpc convention, all non-root types live in
-        // the resource schemas/type/derived.json.
-        URL url = Resources.getResource("schemas/type/derived.json");
-        JsonNode derivedTypesRoot = om.readTree(url);
-        JsonNode defs = derivedTypesRoot.get("definitions");
-
-        List<NamedRpcType> objectDerived = new LinkedList<>();
-        for (Iterator<Entry<String,JsonNode>> it = defs.fields(); it.hasNext(); ) {
-            Entry<String,JsonNode> entry = it.next();
-            String name = entry.getKey();
-            JsonNode def = entry.getValue();
-
-            RpcType type = resolver.resolveSchema(def, name);
-
-            if(type.getRootType().equals(RootTypes.OBJECT)) {
-                objectDerived.add(new NamedRpcType(name, type));
-            }
-
-        }
-
-        return objectDerived;
-    }
-
-    private Configuration configureFreemarker() {
-        Configuration cfg = new Configuration();
-        cfg.setClassForTemplateLoading(GenerateRpcProcessor.class, "/templates");
-        cfg.setIncompatibleImprovements(new Version(2, 3, 20));
-        cfg.setDefaultEncoding("UTF-8");
-        cfg.setLocale(Locale.US);
-        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-        return cfg;
     }
 
 }

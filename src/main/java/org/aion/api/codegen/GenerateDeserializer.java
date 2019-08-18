@@ -40,10 +40,10 @@ public class GenerateDeserializer {
     }
 
     public int go() throws Exception {
-        Configuration freemarker = configureFreemarker();
+        Configuration freemarker = CodeGenUtils.configureFreemarker();
 
         Map<String, Object> ftlMap = new HashMap<>();
-        ftlMap.put("types", retrieveObjectDerivedRpcTypes());
+        ftlMap.put("types", CodeGenUtils.retrieveObjectDerivedRpcTypes(om, resolver));
 
         // Apply Freemarker template; output the result
         System.out.println("// == TemplatedDeserializer.java == ");
@@ -51,39 +51,5 @@ public class GenerateDeserializer {
         freemarker.getTemplate("TemplatedDeserializer.java.ftl").process(ftlMap, consoleWriter);
 
         return 0;
-    }
-
-    private List<NamedRpcType> retrieveObjectDerivedRpcTypes() throws IOException {
-        // as per AionRpc convention, all non-root types live in
-        // the resource schemas/type/derived.json.
-        URL url = Resources.getResource("schemas/type/derived.json");
-        JsonNode derivedTypesRoot = om.readTree(url);
-        JsonNode defs = derivedTypesRoot.get("definitions");
-
-        List<NamedRpcType> objectDerived = new LinkedList<>();
-        for (Iterator<Entry<String,JsonNode>> it = defs.fields(); it.hasNext(); ) {
-            Entry<String,JsonNode> entry = it.next();
-            String name = entry.getKey();
-            JsonNode def = entry.getValue();
-
-            RpcType type = resolver.resolveSchema(def, name);
-
-            if(type.getRootType().equals(RootTypes.OBJECT)) {
-                objectDerived.add(new NamedRpcType(name, type));
-            }
-
-        }
-
-        return objectDerived;
-    }
-
-    private Configuration configureFreemarker() {
-        Configuration cfg = new Configuration();
-        cfg.setClassForTemplateLoading(GenerateDeserializer.class, "/templates");
-        cfg.setIncompatibleImprovements(new Version(2, 3, 20));
-        cfg.setDefaultEncoding("UTF-8");
-        cfg.setLocale(Locale.US);
-        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-        return cfg;
     }
 }

@@ -8,12 +8,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
-public class UtilsTest {
+public class SerializationUtilsTest {
 
     @Test
     public void loadSchema() throws Exception {
         ObjectMapper om = new ObjectMapper();
-        JsonNode node = Utils.loadSchema(om, "schemas/type/root.json");
+        JsonNode node = SerializationUtils.loadSchema(om, "schemas/type/root.json");
         assertThat(node, is(notNullValue()));
     }
 }

@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.net.URL;
 import org.aion.api.schema.JsonSchemaRef;
 
-public class Utils {
+public class SerializationUtils {
     // adapted from
     // https://stackoverflow.com/questions/140131/convert-a-string-representation-of-a-hex-dump-to-a-byte-array-using-java
     public static byte[] hexStringToByteArray(String s) {
@@ -43,7 +43,7 @@ public class Utils {
     public static JsonNode loadSchema(ObjectMapper om, String resource)
     throws IOException {
         //URL url = Resources.getResource(resource);
-        URL url = Utils.class.getClassLoader().getResource(resource);
+        URL url = SerializationUtils.class.getClassLoader().getResource(resource);
         String schemaTxt = Resources.toString(url, Charsets.UTF_8);
         return om.readTree(schemaTxt);
     }
@@ -51,7 +51,7 @@ public class Utils {
     public static JsonNode loadSchema(ObjectMapper om, JsonSchemaRef ref)
         throws IOException {
         //URL url = Resources.getResource(resource);
-        URL url = Utils.class.getClassLoader().getResource("schemas/type/" + ref.getFile());
+        URL url = SerializationUtils.class.getClassLoader().getResource("schemas/type/" + ref.getFile());
         String schemaTxt = Resources.toString(url, Charsets.UTF_8);
         JsonPointer ptr = JsonPointer.compile(ref.getFragment());
         return om.readTree(schemaTxt).at(ptr);

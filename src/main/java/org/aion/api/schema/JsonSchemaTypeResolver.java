@@ -3,14 +3,13 @@ package org.aion.api.schema;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import javax.annotation.Nullable;
-import org.aion.api.serialization.Utils;
+import org.aion.api.serialization.SerializationUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -121,7 +120,7 @@ public class JsonSchemaTypeResolver {
 
         JsonNode definition;
         try {
-            JsonNode refFileRoot = Utils.loadSchema(om, "schemas/type/" + ref.getFile());
+            JsonNode refFileRoot = SerializationUtils.loadSchema(om, "schemas/type/" + ref.getFile());
 
             JsonPointer fragment = JsonPointer.compile(ref.getFragment());
             definition = refFileRoot.at(fragment);

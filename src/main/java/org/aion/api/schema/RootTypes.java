@@ -3,7 +3,7 @@ package org.aion.api.schema;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.List;
-import org.aion.api.serialization.Utils;
+import org.aion.api.serialization.SerializationUtils;
 
 /**
  * The 'root' types of RPC Autogeneration framework.
@@ -23,7 +23,7 @@ public class RootTypes {
         try {
             DATA = new NamedRpcType(
                 "DATA",
-                Utils.loadSchema(om,
+                SerializationUtils.loadSchema(om,
                     new JsonSchemaRef("derived.json#/definitions/DATA")),
                 null,
                 null,
@@ -32,7 +32,7 @@ public class RootTypes {
             );
             QUANTITY = new NamedRpcType(
                 "QUANTITY",
-                Utils.loadSchema(om,
+                SerializationUtils.loadSchema(om,
                     new JsonSchemaRef("derived.json#/definitions/QUANTITY")),
                 null,
                 null,
@@ -41,7 +41,7 @@ public class RootTypes {
             );
             BOOLEAN = new NamedRpcType(
                 "BOOLEAN",
-                Utils.loadSchema(om,
+                SerializationUtils.loadSchema(om,
                     new JsonSchemaRef("derived.json#/definitions/BOOLEAN")),
                 null,
                 null,
@@ -50,7 +50,7 @@ public class RootTypes {
             );
             OBJECT = new NamedRpcType(
                 "OBJECT",
-                Utils.loadSchema(om,
+                SerializationUtils.loadSchema(om,
                     new JsonSchemaRef("derived.json#/definitions/OBJECT")),
                 null,
                 null,

@@ -1,6 +1,6 @@
 package org.aion.api.serialization;
 
-import static org.aion.api.serialization.Utils.hexStringToByteArray;
+import static org.aion.api.serialization.SerializationUtils.hexStringToByteArray;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -11,7 +11,6 @@ import org.aion.api.schema.RootTypes;
 import org.aion.api.schema.RpcType;
 import org.aion.api.schema.SchemaValidationException;
 import org.aion.api.schema.SchemaValidator;
-import org.aion.api.schema.TypeRegistry;
 
 public abstract class RpcTypeDeserializer {
     private final SchemaValidator validator;
@@ -51,7 +50,7 @@ public abstract class RpcTypeDeserializer {
             return node.asBoolean();
         } else if(root.equals(RootTypes.DATA)) {
             String nodeVal = node.asText();
-            return Utils.hexStringToByteArray(nodeVal);
+            return SerializationUtils.hexStringToByteArray(nodeVal);
         } else if(root.equals(RootTypes.QUANTITY)) {
             String nodeVal = node.asText();
             // need to pad it to even-length so it may be converted to byte[]

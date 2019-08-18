@@ -8,12 +8,12 @@ public class RpcMethodSchemaLoader {
     private ObjectMapper om = new ObjectMapper();
 
     public JsonNode loadRequestSchema(String methodName) throws IOException {
-        return Utils.loadSchema(
+        return SerializationUtils.loadSchema(
             om, "schemas/" + methodName + ".request.json");
     }
 
     public JsonNode loadResponseSchema(String methodName) throws IOException {
-        return Utils.loadSchema(
+        return SerializationUtils.loadSchema(
             om, "schemas/" + methodName + ".response.json");
     }
 }

@@ -4,19 +4,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import org.aion.api.schema.RootTypes;
 import org.aion.api.schema.JsonSchemaTypeResolver;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.List;
-import org.aion.api.schema.NamedRpcType;
-import org.aion.api.schema.RpcType;
+
 import org.aion.api.schema.SchemaValidationException;
 import org.aion.api.schema.SchemaValidator;
 import org.aion.api.schema.TypeRegistry;
-
-import static org.aion.api.serialization.Utils.hexStringToByteArray;
 
 public class RequestDeserializer {
     private final ObjectMapper om;
@@ -61,23 +56,25 @@ public class RequestDeserializer {
         }
 
         String method = payloadRoot.get("method").asText();
-        JsonNode rezRoot = schemaLoader.loadRequestSchema(method);
+        JsonNode reqRoot = schemaLoader.loadRequestSchema(method);
 
-        List<JsonNode> schemaParamNodes = Lists.newArrayList(rezRoot.get("items").elements());
+        List<JsonNode> schemaParamNodes = Lists.newArrayList(reqRoot.get("items").elements());
         List<JsonNode> paramNodes = Lists.newArrayList(params.elements());
 
         if(schemaParamNodes.size() != paramNodes.size()) {
             throw new SchemaValidationException(String.format(
-                    "Wrong number of arguments (expected %d but got %d)", schemaParamNodes.size(), paramNodes.size()));
+                    "Wrong number of arguments (expected %d but got %d)",
+                    schemaParamNodes.size(),
+                    paramNodes.size()));
         }
 
         Object[] reqParams = new Object[paramNodes.size()];
         TypeRegistry tr = new TypeRegistry();
 
         for(int ix = 0; ix < paramNodes.size(); ++ix) {
-            reqParams[ix] = deserializer
-                .deserialize(paramNodes.get(ix),
-                        resolver.resolveNamedSchema(schemaParamNodes.get(ix)));
+            reqParams[ix] = deserializer.deserialize(
+                    paramNodes.get(ix),
+                    resolver.resolveNamedSchema(schemaParamNodes.get(ix)));
         }
 
         req.setParams(reqParams);

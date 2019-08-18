@@ -1,6 +1,6 @@
 package org.aion.api.serialization;
 
-import static org.aion.api.serialization.Utils.bytesToHex;
+import static org.aion.api.serialization.SerializationUtils.bytesToHex;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,7 +17,6 @@ import org.aion.api.schema.RootTypes;
 import org.aion.api.schema.RpcType;
 import org.aion.api.schema.SchemaValidationException;
 import org.aion.api.schema.SchemaValidator;
-import org.aion.api.schema.TypeRegistry;
 
 public class ResponseSerializer {
     private final ObjectMapper om = new ObjectMapper();

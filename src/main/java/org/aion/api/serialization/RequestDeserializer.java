@@ -69,7 +69,6 @@ public class RequestDeserializer {
         }
 
         Object[] reqParams = new Object[paramNodes.size()];
-        TypeRegistry tr = new TypeRegistry();
 
         for(int ix = 0; ix < paramNodes.size(); ++ix) {
             reqParams[ix] = deserializer.deserialize(

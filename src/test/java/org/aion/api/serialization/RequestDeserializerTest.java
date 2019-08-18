@@ -61,7 +61,7 @@ public class RequestDeserializerTest {
             typesSchemaRoot,
             schemaLoader,
             validator,
-            new RootTypeOnlyDeserializer()
+            new TestDeserializer()
         );
         JsonRpcRequest result = unit.deserialize(payload);
 
@@ -97,7 +97,7 @@ public class RequestDeserializerTest {
             typesSchemaRoot,
             schemaLoader,
             validator,
-            new RootTypeOnlyDeserializer()
+            new TestDeserializer()
          );
 
         try {
@@ -130,72 +130,138 @@ public class RequestDeserializerTest {
             typesSchemaRoot,
             schemaLoader,
             validator,
-            new RootTypeOnlyDeserializer()
+            new TestDeserializer()
         );
         unit.deserialize(payload);
     }
 
-    private static class RootTypeOnlyDeserializer extends RpcTypeDeserializer {
+    @Test
+    public void testSimpleObject() throws Exception {
+        JsonNode requestSchema = om.readTree(
+                "{"
+                        + "\"type\": \"array\","
+                        + "\"items\" : "
+                        + "[ "
+                        + "{ \"$ref\" : \"derived.json#/definitions/SomeStruct\" } "
+                        + "]}");
+        when(schemaLoader.loadRequestSchema("testMethod"))
+                .thenReturn(requestSchema);
 
+        String payload = "{                                                                                                                                                                                                                   \n" +
+                "  \"method\": \"testMethod\",\n" +
+                "  \"params\": [{" +
+                "     \"MyData\":\"0x80f8085aed722d176fb5cf83e94ef57261e764e335488dd2f9413b3f64d1caa7\", " +
+                "     \"MyQuantity\":\"0x99\"" +
+                "  }],\n" +
+                "  \"id\": \"1\",\n" +
+                "  \"jsonrpc\": \"2.0\"\n" +
+                "}";
+        RequestDeserializer unit = new RequestDeserializer(
+                om,
+                typesSchemaRoot,
+                schemaLoader,
+                validator,
+                new TestDeserializer()
+        );
+        JsonRpcRequest result = unit.deserialize(payload);
+
+        assertThat(result.getParams()[0] instanceof SomeStruct, is(true));
+        assertThat(result.getParams().length, is(1));
+
+        SomeStruct param0 = (SomeStruct)result.getParams()[0];
+
+        assertThat(param0.getMyData(),
+                is(SerializationUtils.hexStringToByteArray(
+                        "0x80f8085aed722d176fb5cf83e94ef57261e764e335488dd2f9413b3f64d1caa7")));
+        assertThat(param0.getMyQuantity(),
+                is(BigInteger.valueOf(0x99)));
+    }
+
+    @Test(expected = SchemaValidationException.class)
+    public void testSimpleObjectFailingValidation() throws Exception {
+        JsonNode requestSchema = om.readTree(
+                "{"
+                        + "\"type\": \"array\","
+                        + "\"items\" : "
+                        + "[ "
+                        + "{ \"$ref\" : \"derived.json#/definitions/SomeStruct\" } "
+                        + "]}");
+        when(schemaLoader.loadRequestSchema("testMethod"))
+                .thenReturn(requestSchema);
+
+        String payload = "{                                                                                                                                                                                                                   \n" +
+                "  \"method\": \"testMethod\",\n" +
+                "  \"params\": [{" +
+                "     \"MyData\":\"0x1\", " +
+                "     \"MyQuantity\":\"0x99\"" +
+                "  }],\n" +
+                "  \"id\": \"1\",\n" +
+                "  \"jsonrpc\": \"2.0\"\n" +
+                "}";
+        RequestDeserializer unit = new RequestDeserializer(
+                om,
+                typesSchemaRoot,
+                schemaLoader,
+                validator,
+                new TestDeserializer()
+        );
+        unit.deserialize(payload);
+    }
+
+    /**
+     * @implNote In real usage (i.e. from the Aion kernel), the {@link RpcTypeDeserializer}
+     * that is used is generated code outputted by the {@link GenerateDeserializer} program
+     * from the template TemplatedDeserializer.java.ftl.  This is a test implementation for
+     * unit testing and also serves as a reference for what that program should
+     * output and how it interacts with {@link RequestDeserializer}.
+     */
+    private static class TestDeserializer extends RpcTypeDeserializer {
         @Override
-        protected Object deserializeObject(JsonNode node,
-                                           NamedRpcType expectedTypeSchema) throws SchemaValidationException {
-            throw new UnsupportedOperationException();
+        protected Object deserializeObject(JsonNode value,
+                                           NamedRpcType type) throws SchemaValidationException {
+            switch(type.getName()) {
+                case "SomeStruct":
+                    return new SomeStruct(
+                            (byte[]) super.deserialize(
+                                    value.get("MyData"),
+                                    (NamedRpcType) type.getContainedFields().get(0).getType()
+
+                            ),
+                            (java.math.BigInteger) super.deserialize(
+                                    value.get("MyQuantity"),
+                                    (NamedRpcType) type.getContainedFields().get(1).getType()
+                            )
+                    );
+                default: throw new UnsupportedOperationException(
+                        "Unsupported type.");
+            }
         }
     }
 
-//    @Test
-//    public void testcompile() throws Exception {
-//        // pretty damn ridiculous
-//
-//        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-//        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-//
-//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//        System.setOut(new PrintStream(baos));
-//        new GenerateDeserializer().go();
-//        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
-//
-//        StringWriter writer = new StringWriter();
-//        PrintWriter out = new PrintWriter(writer);
-//        out.println(baos.toString());
-//
-//
-//        JavaFileObject file = new JavaSourceFromString("TemplatedDeserializer", writer.toString());
-//        Iterable<? extends JavaFileObject> compilationUnits = Arrays.asList(file);
-//        JavaCompiler.CompilationTask task = compiler.getTask(null, null, diagnostics, null, null, compilationUnits);
-//
-//        boolean success = task.call();
-//        if (success) {
-//            try {
-//                Class.forName("org.aion.api.server.rpc2.autogen.TemplatedDeserializer")
-//                        .getDeclaredMethod("deserializeObject", new Class[] {
-//                                JsonNode.class, NamedRpcType.class, TypeRegistry.class })
-//                        .invoke(null, null, null);
-//            } catch (ClassNotFoundException e) {
-//                System.err.println("Class not found: " + e);
-//            } catch (NoSuchMethodException e) {
-//                System.err.println("No such method: " + e);
-//            } catch (IllegalAccessException e) {
-//                System.err.println("Illegal access: " + e);
-//            } catch (InvocationTargetException e) {
-//                System.err.println("Invocation target: " + e);
-//            }
-//        }
-//
-//    }
-//
-//    class JavaSourceFromString extends SimpleJavaFileObject {
-//        final String code;
-//
-//        JavaSourceFromString(String name, String code) {
-//            super(URI.create("string:///" + name.replace('.','/') + Kind.SOURCE.extension),Kind.SOURCE);
-//            this.code = code;
-//        }
-//
-//        @Override
-//        public CharSequence getCharContent(boolean ignoreEncodingErrors) {
-//            return code;
-//        }
-//    }
+    /**
+     * @implNote In real usage (i.e. from the Aion kernel), POD types are generated by the
+     * {@link org.aion.api.codegen.GenerateDataHolders} program.  This is a test POD type
+     * for unit testing and also serves as a reference for what that program should
+     * output and how it interacts with {@link RequestDeserializer}.
+     */
+    private static class SomeStruct {
+        private byte[] MyData;
+        private java.math.BigInteger MyQuantity;
+
+        public SomeStruct(
+                byte[] MyData,
+                java.math.BigInteger MyQuantity
+        ) {
+            this.MyData = MyData;
+            this.MyQuantity = MyQuantity;
+        }
+
+        public byte[] getMyData() {
+            return this.MyData;
+        }
+
+        public java.math.BigInteger getMyQuantity() {
+            return this.MyQuantity;
+        }
+    }
 }

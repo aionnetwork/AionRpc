@@ -53,11 +53,14 @@ public abstract class RpcTypeDeserializer {
             return SerializationUtils.hexStringToByteArray(nodeVal);
         } else if(root.equals(RootTypes.QUANTITY)) {
             String nodeVal = node.asText();
-            // need to pad it to even-length so it may be converted to byte[]
             if(nodeVal.length() % 2 != 0) {
-                nodeVal = nodeVal.replaceFirst("0x", "0x0");
+                // need to pad it to even-length so it may be converted to byte[]
+                nodeVal = nodeVal.replaceFirst("0x", "0");
+            } else {
+                nodeVal = nodeVal.replaceFirst("0x", "");
+
             }
-            return new BigInteger(hexStringToByteArray(nodeVal));
+            return new BigInteger(nodeVal, 16);
         } else if (root.equals(RootTypes.OBJECT)) {
             return deserializeObject(node, type);
         }

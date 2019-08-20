@@ -1,9 +1,12 @@
 package org.aion.api.serialization;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import org.aion.api.RpcException;
 import org.aion.api.schema.JsonSchemaTypeResolver;
 
 import java.io.IOException;
@@ -46,15 +49,27 @@ public class RequestDeserializer {
      * @throws IOException if schema for the method name in the call can't be loaded
      */
     public JsonRpcRequest deserialize(String payload)
-    throws IOException, SchemaValidationException {
-        // note to self -- needs to get called by AbstractRpcServer in the kernel.  which will
-        // need to look at the request schema so it can cast the params array correctly
-        JsonRpcRequest req = om.readValue(payload, JsonRpcRequest.class);
+    throws RpcException, IOException {
+
+        final JsonRpcRequest req;
+        try {
+            req = om.readValue(payload, JsonRpcRequest.class);
+        } catch(JsonParseException jpe) {
+            // JSON parse error
+            throw RpcException.parseError(jpe.getMessage());
+        } catch (JsonMappingException jme) {
+            // happens if the fields in the json don't match up to
+            // the jsonrpc envelope
+            throw RpcException.invalidRequest(jme.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException();
+        }
 
         JsonNode payloadRoot = om.readTree(payload);
         JsonNode params = payloadRoot.get("params");
         if(params == null || !params.isArray()) {
-            throw new SchemaValidationException("Params array missing from request.");
+            throw RpcException.invalidRequest("Missing params field in request");
         }
 
         String method = payloadRoot.get("method").asText();
@@ -64,7 +79,7 @@ public class RequestDeserializer {
         List<JsonNode> paramNodes = Lists.newArrayList(params.elements());
 
         if(schemaParamNodes.size() != paramNodes.size()) {
-            throw new SchemaValidationException(String.format(
+            throw RpcException.invalidParams(String.format(
                     "Wrong number of arguments (expected %d but got %d)",
                     schemaParamNodes.size(),
                     paramNodes.size()));
@@ -73,9 +88,13 @@ public class RequestDeserializer {
         Object[] reqParams = new Object[paramNodes.size()];
 
         for(int ix = 0; ix < paramNodes.size(); ++ix) {
-            reqParams[ix] = deserializer.deserialize(
-                    paramNodes.get(ix),
-                    resolver.resolveNamedSchema(schemaParamNodes.get(ix)));
+            try {
+                reqParams[ix] = deserializer.deserialize(
+                        paramNodes.get(ix),
+                        resolver.resolveNamedSchema(schemaParamNodes.get(ix)));
+            } catch (SchemaValidationException svx) {
+                throw RpcException.invalidParams(svx.getMessage()); // TODO can we improve the info that's surfaced?
+            }
         }
 
         req.setParams(reqParams);

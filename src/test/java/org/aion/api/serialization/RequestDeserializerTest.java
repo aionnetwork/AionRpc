@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.math.BigInteger;
 
+import org.aion.api.RpcException;
 import org.aion.api.codegen.GenerateDeserializer;
 import org.aion.api.schema.*;
 import org.json.JSONPointer;
@@ -79,7 +80,7 @@ public class RequestDeserializerTest {
 
         String payload = "{                                                                                                                                                                                                                   \n" +
             "  \"method\": \"testMethod\",\n" +
-            "  \"params\": [\"0x123456789a123456789a123456789a123456789a123456789a123456789a12345\"],\n" +
+            "  \"params\": [\"0x123456789a123456789a123456789a123456789a123456789a123456789a1234\"],\n" +
             "  \"id\": \"1\",\n" +
             "  \"jsonrpc\": \"2.0\"\n" +
             "}";
@@ -90,14 +91,13 @@ public class RequestDeserializerTest {
                 new JsonSchemaTypeResolver()
         );
 
-        try {
-            JsonRpcRequest result = unit.deserialize(payload);
-        } catch (SchemaValidationException svx) {
-
-        }
+        JsonRpcRequest result = unit.deserialize(payload);
+        assertThat(result.getParams()[0],
+                is(SerializationUtils.hexStringToByteArray(
+                        "0x123456789a123456789a123456789a123456789a123456789a123456789a1234")));
     }
 
-    @Test(expected = SchemaValidationException.class)
+    @Test
     public void testFailedLengthConstraint() throws Exception {
         JsonNode requestSchema = om.readTree(
             "{"
@@ -123,7 +123,13 @@ public class RequestDeserializerTest {
                 new TestDeserializer(),
                 new JsonSchemaTypeResolver()
         );
-        unit.deserialize(payload);
+        try {
+            unit.deserialize(payload);
+        } catch (RpcException e) {
+            assertThat(e.getCode(), is(RpcException.invalidParams("any").getCode()));
+            return;
+        }
+        fail("exception wasn't thrown");
     }
 
     @Test
@@ -177,7 +183,7 @@ public class RequestDeserializerTest {
                 is(BigInteger.valueOf(0x99)));
     }
 
-    @Test(expected = SchemaValidationException.class)
+    @Test
     public void testSimpleObjectFailingValidation() throws Exception {
         JsonNode requestSchema = om.readTree(
                 "{"
@@ -214,7 +220,100 @@ public class RequestDeserializerTest {
                 new TestDeserializer(),
                 new JsonSchemaTypeResolver(schemaLoader)
         );
-        unit.deserialize(payload);
+
+
+        try {
+            unit.deserialize(payload);
+        } catch (RpcException e) {
+            assertThat(e.getCode(), is(RpcException.invalidParams("any").getCode()));
+            return;
+        }
+        fail("Expected RpcException");
+
+
+    }
+
+    @Test
+    public void testParseError() throws Exception {
+        RequestDeserializer unit = new RequestDeserializer(
+                om,
+                schemaLoader,
+                new TestDeserializer(),
+                new JsonSchemaTypeResolver()
+        );
+
+        try {
+            unit.deserialize("{");
+        } catch (RpcException e) {
+            assertThat(e.getCode(), is(RpcException.parseError("any").getCode()));
+            return;
+        }
+        fail("exception wasn't thrown");
+    }
+
+    @Test
+    public void testJsonRpcEnvelopeUnexpectedField() throws Exception {
+        String payload = "{                                                                                                                                                                                                                   \n" +
+                "  \"method\": \"testMethod\",\n" +
+                "  \"params\": [\"0x10\", \"0xe\", true],\n" +
+                "  \"somecrazyfield\": \"1\",\n" +
+                "  \"jsonrpc\": \"2.0\"\n" +
+                "}";
+        RequestDeserializer unit = new RequestDeserializer(
+                om,
+                schemaLoader,
+                new TestDeserializer(),
+                new JsonSchemaTypeResolver()
+        );
+        try {
+            unit.deserialize(payload);
+        } catch (RpcException e) {
+            assertThat(e.getCode(), is(RpcException.invalidRequest("any").getCode()));
+            return;
+        }
+        fail("exception wasn't thrown");
+    }
+
+    @Test
+    public void testJsonRpcEnvelopeMissingMethod() throws Exception {
+        String payload = "{                                                                                                                                                                                                                   \n" +
+                "  \"params\": [\"0x10\", \"0xe\", true],\n" +
+                "  \"jsonrpc\": \"2.0\"\n" +
+                "}";
+        RequestDeserializer unit = new RequestDeserializer(
+                om,
+                schemaLoader,
+                new TestDeserializer(),
+                new JsonSchemaTypeResolver()
+        );
+        try {
+            unit.deserialize(payload);
+        } catch (RpcException e) {
+            assertThat(e.getCode(), is(RpcException.invalidRequest("any").getCode()));
+            return;
+        }
+        fail("exception wasn't thrown");
+    }
+
+    @Test
+    public void testJsonRpcEnvelopeMissingParams() throws Exception {
+        String payload = "{                                                                                                                                                                                                                   \n" +
+                "  \"method\": \"testMethod\",\n" +
+                "  \"jsonrpc\": \"2.0\"\n" +
+                "}";
+        RequestDeserializer unit = new RequestDeserializer(
+                om,
+                schemaLoader,
+                new TestDeserializer(),
+                new JsonSchemaTypeResolver()
+        );
+        try {
+            unit.deserialize(payload);
+        } catch (RpcException e) {
+            assertThat(e.getCode(), is(RpcException.invalidRequest("any").getCode()));
+            return;
+        }
+        fail("exception wasn't thrown");
     }
 
     // -- SomeStruct set up -------------------------------------------------------------

@@ -3,6 +3,7 @@ package org.aion.api.serialization;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.aion.api.RpcException;
 
 public class JsonRpcRequest {
     private final String jsonrpc;
@@ -15,7 +16,14 @@ public class JsonRpcRequest {
     @JsonCreator
     public JsonRpcRequest(@JsonProperty("method") String method,
                           @JsonProperty("id") String id,
-                          @JsonProperty("jsonrpc") String jsonrpc) {
+                          @JsonProperty("jsonrpc") String jsonrpc)
+    throws RpcException {
+        if(method == null) {
+            throw RpcException.invalidRequest("Missing method field in request");
+        }
+        if(jsonrpc == null) {
+            throw RpcException.invalidRequest("Missing jsonrpc field in request");
+        }
         this.jsonrpc = jsonrpc;
         this.method = method;
         this.id = id;
@@ -40,14 +48,4 @@ public class JsonRpcRequest {
     public String getId() {
         return id;
     }
-
-//    public void test() throws Exception {
-//        JsonFactory fact = new JsonFactory();
-//        JsonParser p = fact.createParser("[\"0x11\", false, {\"some\" : \"thing\"} ]");
-//        while(!p.isClosed()){
-//            JsonToken jsonToken = p.nextToken();
-//
-//            System.out.println("jsonToken = " + jsonToken);
-//        }
-//    }
 }

@@ -1,34 +1,32 @@
 package org.aion.api.codegen;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.Resources;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
-import org.aion.api.schema.Field;
-import org.aion.api.schema.JsonSchemaTypeResolver;
-import org.aion.api.schema.NamedRpcType;
 
 import java.io.*;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 
-public class GenerateDataHolders {
+public class GenerateExceptions {
     private final ObjectMapper om;
-    private final JsonSchemaTypeResolver resolver;
 
     public static void main(String[] args) throws Exception {
-         System.exit(new GenerateDataHolders().go(args));
+        System.exit(new GenerateExceptions().go(args));
     }
 
-    public GenerateDataHolders() {
+    private GenerateExceptions() {
         this.om = new ObjectMapper();
-        this.resolver = new JsonSchemaTypeResolver();
     }
 
-    String subpath = "/modApiServer/src/org/aion/api/server/rpc2/autogen/pod/";
+    String subpath = "/modApiServer/src/org/aion/api/server/rpc2/autogen/errors/";
 
-    public int go(String[] args) throws IOException, TemplateException {
+    private int go(String[] args) throws IOException, TemplateException {
         boolean useStdout = args.length != 1;
 
         File outputRoot = null;
@@ -44,25 +42,23 @@ public class GenerateDataHolders {
 
         Configuration freemarker = CodeGenUtils.configureFreemarker();
 
-        for(NamedRpcType type : CodeGenUtils.retrieveObjectDerivedRpcTypes(om, resolver)) {
-            String filename = type.getName() + ".java";
+        for(Map.Entry<String, RpcError> error : CodeGenUtils.retrieveErrorDefinitions(om).entrySet()) {
+            String filename = error.getKey() + "RpcException.java";
             if(outputRoot != null) {
                 consoleWriter = new OutputStreamWriter(
-                    new FileOutputStream(outputRoot.toString() + "/" + filename));
+                        new FileOutputStream(outputRoot.toString() + "/" + filename));
             }
 
-            List<Field> fields = type.getContainedFields();
-
             Map<String, Object> ftlMap = new HashMap<>();
-            ftlMap.put("javaClassName", type.getName());
-            ftlMap.put("fields", fields);
+            ftlMap.put("errorName", error.getKey());
+            ftlMap.put("message", error.getValue().getMessage());
+            ftlMap.put("code", error.getValue().getCode());
 
             System.out.println("// == " + filename + " == ");
 
-            freemarker.getTemplate("RpcDataHolder.java.ftl").process(ftlMap, consoleWriter);
+            freemarker.getTemplate("RpcMethodException.java.ftl").process(ftlMap, consoleWriter);
         }
 
         return 0;
     }
-
 }

@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "errors/error.json",
+  "$comment": "Custom error types are defined here.  Errors predefined by JSONRPC 2.0 are not included.",
+
+  "definitions": {
+    "Unauthorized": {
+      "type": "object",
+      "properties": {
+        "code": { "const": 10001 } ,
+        "message": { "const": "Unauthorized" },
+        "data": {"type": "string"}
+      }
+
+    }
+
+  }
+}

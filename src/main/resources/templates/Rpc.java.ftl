@@ -1,5 +1,6 @@
 package org.aion.api.server.rpc2.autogen;
 import org.aion.api.server.rpc2.autogen.pod.*;
+import org.aion.api.server.rpc2.autogen.errors.*;
 
 /******************************************************************************
 *
@@ -12,9 +13,12 @@ public interface Rpc {
 <#list javaMethodDeclarations as decl>
     ${decl.returnType} ${decl.methodName}(
 <#list decl.args as arg>
-        ${arg} var${arg_index}<#if (arg_has_next)>,</#if>
+        ${arg} var${arg_index}<#if (arg_has_next)>, </#if>
+</#list>    )
+<#list decl.exceptions>
+    throws <#items as ex>${ex}RpcException<#if (arg_has_next)??>, </#if></#items>
 </#list>
-    );
+    ;
 
 </#list>
 }

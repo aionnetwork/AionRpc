@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+
+  "title": "eth_sendTransaction request",
+  "$comment": "Prototype version, don't use yet!",
+  "description": "",
+
+  "type": "array",
+  "additionalItems": false,
+  "items": [
+    {
+      "$ref": "derived.json#/definitions/CallRequest",
+      "description": "The transaction call object"
+    }
+  ],
+
+  "examples": [
+  ]
+}

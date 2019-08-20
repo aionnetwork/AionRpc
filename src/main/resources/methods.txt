@@ -3,3 +3,4 @@ submitseed
 submitsignature
 eth_getTransactionByHash2
 eth_call2
+eth_sendTransaction2

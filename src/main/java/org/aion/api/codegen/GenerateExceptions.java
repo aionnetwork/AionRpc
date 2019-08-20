@@ -13,20 +13,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GenerateDataHolders {
+public class GenerateExceptions {
     private final ObjectMapper om;
     private final JsonSchemaTypeResolver resolver;
 
     public static void main(String[] args) throws Exception {
-         System.exit(new GenerateDataHolders().go(args));
+        System.exit(new GenerateDataHolders().go(args));
     }
 
-    public GenerateDataHolders() {
+    public GenerateExceptions() {
         this.om = new ObjectMapper();
         this.resolver = new JsonSchemaTypeResolver();
     }
 
-    String subpath = "/modApiServer/src/org/aion/api/server/rpc2/autogen/pod/";
+    String subpath = "/modApiServer/src/org/aion/api/server/rpc2/autogen/errors/";
 
     public int go(String[] args) throws IOException, TemplateException {
         boolean useStdout = args.length != 1;
@@ -48,7 +48,7 @@ public class GenerateDataHolders {
             String filename = type.getName() + ".java";
             if(outputRoot != null) {
                 consoleWriter = new OutputStreamWriter(
-                    new FileOutputStream(outputRoot.toString() + "/" + filename));
+                        new FileOutputStream(outputRoot.toString() + "/" + filename));
             }
 
             List<Field> fields = type.getContainedFields();
@@ -64,5 +64,4 @@ public class GenerateDataHolders {
 
         return 0;
     }
-
 }

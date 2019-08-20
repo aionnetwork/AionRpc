@@ -13,7 +13,7 @@ public class SerializationUtilsTest {
     @Test
     public void loadSchema() throws Exception {
         ObjectMapper om = new ObjectMapper();
-        JsonNode node = SerializationUtils.loadSchema(om, "schemas/type/root.json");
+        JsonNode node = SerializationUtils.loadSchemaRef(om, "schemas/type/root.json");
         assertThat(node, is(notNullValue()));
     }
 }

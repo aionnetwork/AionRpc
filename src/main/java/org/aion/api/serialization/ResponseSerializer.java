@@ -20,17 +20,23 @@ import org.aion.api.schema.SchemaValidator;
 
 public class ResponseSerializer {
     private final ObjectMapper om = new ObjectMapper();
-    private final JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
-    private final RpcMethodSchemaLoader schemaLoader;
+    private final JsonSchemaTypeResolver resolver;
+    private final RpcSchemaLoader schemaLoader;
     private final SchemaValidator validator = new SchemaValidator();
 
-    public ResponseSerializer(JsonNode typesRoot) {
-        this(typesRoot, new RpcMethodSchemaLoader());
+    /** Constructor */
+    public ResponseSerializer() {
+        this(new JsonSchemaTypeResolver(), new RpcSchemaLoader());
     }
 
+    /**
+     * Constructor -- mainly intended for testing so that underlying resolvers
+     * can be injected with test types.
+     */
     @VisibleForTesting
-    public ResponseSerializer(JsonNode typesRoot,
-                              RpcMethodSchemaLoader schemaLoader) {
+    public ResponseSerializer(JsonSchemaTypeResolver resolver,
+                              RpcSchemaLoader schemaLoader) {
+        this.resolver = resolver;
         this.schemaLoader = schemaLoader;
 
         SimpleModule customSerializers = new SimpleModule();

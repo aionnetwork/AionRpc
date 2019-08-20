@@ -10,29 +10,29 @@ import java.io.IOException;
 import java.util.List;
 
 import org.aion.api.schema.SchemaValidationException;
-import org.aion.api.schema.SchemaValidator;
-import org.aion.api.schema.TypeRegistry;
 
 public class RequestDeserializer {
     private final ObjectMapper om;
     protected final JsonSchemaTypeResolver resolver;
-    private final RpcMethodSchemaLoader schemaLoader;
+    private final RpcSchemaLoader schemaLoader;
     private final RpcTypeDeserializer deserializer;
 
     public RequestDeserializer(RpcTypeDeserializer rpcTypeDeserializer) {
         this(
                 new ObjectMapper(),
-                new RpcMethodSchemaLoader(),
-                rpcTypeDeserializer
+                new RpcSchemaLoader(),
+                rpcTypeDeserializer,
+                new JsonSchemaTypeResolver()
         );
     }
 
     @VisibleForTesting
     RequestDeserializer(ObjectMapper om,
-                        RpcMethodSchemaLoader schemaLoader,
-                        RpcTypeDeserializer deserializer) {
+                        RpcSchemaLoader schemaLoader,
+                        RpcTypeDeserializer deserializer,
+                        JsonSchemaTypeResolver resolver) {
         this.om = om;
-        this.resolver = new JsonSchemaTypeResolver();
+        this.resolver = resolver;
         this.schemaLoader = schemaLoader;
         this.deserializer = deserializer;
     }

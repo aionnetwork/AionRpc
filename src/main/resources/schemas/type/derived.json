@@ -47,15 +47,6 @@
         "value": {"$ref": "root.json#/definitions/QUANTITY"},
         "data": {"$ref": "root.json#/definitions/DATA"}
       }
-    },
-
-    "SomeStruct": {
-      "$comment": "Test structure used only by unit tests.",
-      "type": "object",
-      "properties": {
-        "MyData": {"$ref": "derived.json#/definitions/DATA32"},
-        "MyQuantity": {"$ref": "root.json#/definitions/QUANTITY"}
-      }
     }
 
   }

@@ -1,18 +1,17 @@
 package org.aion.api.schema;
 
-import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
+import org.aion.api.serialization.RpcSchemaLoader;
 
+import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import javax.annotation.Nullable;
-import org.aion.api.serialization.SerializationUtils;
-
-import java.io.IOException;
-import java.util.List;
 
 /**
  * Resolves types from a JsonSchema to types in Java.  JsonSchema
@@ -23,7 +22,25 @@ import java.util.List;
  * were needed at the time are implemented (feel free to extend).
  */
 public class JsonSchemaTypeResolver {
-    private ObjectMapper om = new ObjectMapper();
+    private final ObjectMapper om = new ObjectMapper();
+    private final RpcSchemaLoader loader;
+
+    /** Constructor */
+    public JsonSchemaTypeResolver() {
+        this(new RpcSchemaLoader());
+    }
+
+    /**
+     * Constructor, mainly intended for testing -- allows for changing
+     * the behaviour of how method name and type schemas are
+     * loaded.
+     *
+     * @param loader RPC Schema loader (methods and types)
+     */
+    @VisibleForTesting
+    public JsonSchemaTypeResolver(RpcSchemaLoader loader) {
+        this.loader = loader;
+    }
 
     /**
      * Create the {@link RpcType} that represents an Aion RPC Type from its
@@ -120,10 +137,7 @@ public class JsonSchemaTypeResolver {
 
         JsonNode definition;
         try {
-            JsonNode refFileRoot = SerializationUtils.loadSchema(om, "schemas/type/" + ref.getFile());
-
-            JsonPointer fragment = JsonPointer.compile(ref.getFragment());
-            definition = refFileRoot.at(fragment);
+            definition = loader.loadSchemaRef(ref);
         } catch (IOException ioe) {
             throw new SchemaException(String.format(
                     "Failed to load schema file '%s' when dereferencing pointer '%s'",
@@ -164,7 +178,7 @@ public class JsonSchemaTypeResolver {
         RpcType baseResolved = resolveSchema(base);
 
         return new RpcType(
-                schema, //allOf,
+                schema,
                 baseResolved,
                 constraint,
                 List.of(),

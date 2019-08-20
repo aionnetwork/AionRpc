@@ -1,15 +1,14 @@
 package org.aion.api.serialization;
 
-import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+
 import java.io.IOException;
 import java.net.URL;
-import org.aion.api.schema.JsonSchemaRef;
 
-public class SerializationUtils {
+class SerializationUtils {
     // adapted from
     // https://stackoverflow.com/questions/140131/convert-a-string-representation-of-a-hex-dump-to-a-byte-array-using-java
     public static byte[] hexStringToByteArray(String s) {
@@ -40,20 +39,10 @@ public class SerializationUtils {
         return new String(hexChars);
     }
 
-    public static JsonNode loadSchema(ObjectMapper om, String resource)
+    public static JsonNode loadSchemaRef(ObjectMapper om, String resource)
     throws IOException {
-        //URL url = Resources.getResource(resource);
         URL url = SerializationUtils.class.getClassLoader().getResource(resource);
         String schemaTxt = Resources.toString(url, Charsets.UTF_8);
         return om.readTree(schemaTxt);
-    }
-
-    public static JsonNode loadSchema(ObjectMapper om, JsonSchemaRef ref)
-        throws IOException {
-        //URL url = Resources.getResource(resource);
-        URL url = SerializationUtils.class.getClassLoader().getResource("schemas/type/" + ref.getFile());
-        String schemaTxt = Resources.toString(url, Charsets.UTF_8);
-        JsonPointer ptr = JsonPointer.compile(ref.getFragment());
-        return om.readTree(schemaTxt).at(ptr);
     }
 }

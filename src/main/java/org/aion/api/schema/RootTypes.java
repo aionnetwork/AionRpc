@@ -1,9 +1,10 @@
 package org.aion.api.schema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.aion.api.serialization.RpcSchemaLoader;
+
 import java.io.IOException;
 import java.util.List;
-import org.aion.api.serialization.SerializationUtils;
 
 /**
  * The 'root' types of RPC Autogeneration framework.
@@ -18,11 +19,12 @@ public class RootTypes {
 
     static {
         final ObjectMapper om = new ObjectMapper();
+        final RpcSchemaLoader loader = new RpcSchemaLoader();
         try {
             DATA = new NamedRpcType(
                 "DATA",
-                SerializationUtils.loadSchema(om,
-                    new JsonSchemaRef("root.json#/definitions/DATA")),
+                loader.loadSchemaRef(
+                        new JsonSchemaRef("root.json#/definitions/DATA")),
                 null,
                 null,
                 List.of(),
@@ -30,8 +32,8 @@ public class RootTypes {
             );
             QUANTITY = new NamedRpcType(
                 "QUANTITY",
-                SerializationUtils.loadSchema(om,
-                    new JsonSchemaRef("root.json#/definitions/QUANTITY")),
+                loader.loadSchemaRef(
+                        new JsonSchemaRef("root.json#/definitions/QUANTITY")),
                 null,
                 null,
                 List.of(),
@@ -39,8 +41,8 @@ public class RootTypes {
             );
             BOOLEAN = new NamedRpcType(
                 "BOOLEAN",
-                SerializationUtils.loadSchema(om,
-                    new JsonSchemaRef("root.json#/definitions/BOOLEAN")),
+                loader.loadSchemaRef(
+                        new JsonSchemaRef("root.json#/definitions/BOOLEAN")),
                 null,
                 null,
                 List.of(),
@@ -48,8 +50,8 @@ public class RootTypes {
             );
             OBJECT = new NamedRpcType(
                 "OBJECT",
-                SerializationUtils.loadSchema(om,
-                    new JsonSchemaRef("root.json#/definitions/OBJECT")),
+                loader.loadSchemaRef(
+                        new JsonSchemaRef("root.json#/definitions/OBJECT")),
                 null,
                 null,
                 List.of(),

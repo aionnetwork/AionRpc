@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import org.aion.api.schema.JsonSchemaRef;
+import org.aion.api.schema.JsonSchemaTypeResolver;
 import org.aion.api.schema.SchemaValidationException;
 import org.junit.Test;
 
@@ -12,12 +14,11 @@ import java.net.URL;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ResponseSerializerTest {
     private final ObjectMapper om = new ObjectMapper();
-    private RpcMethodSchemaLoader schemaLoader = mock(RpcMethodSchemaLoader.class);
+    private RpcSchemaLoader schemaLoader = mock(RpcSchemaLoader.class);
     private final JsonNode typesSchemaRoot;
 
 
@@ -34,7 +35,9 @@ public class ResponseSerializerTest {
         when(schemaLoader.loadResponseSchema("testMethod"))
             .thenReturn(responseSchema);
 
-        ResponseSerializer unit = new ResponseSerializer(typesSchemaRoot, schemaLoader);
+        ResponseSerializer unit = new ResponseSerializer(
+                new JsonSchemaTypeResolver(),
+                schemaLoader);
 
         byte[] responseBytes = SerializationUtils.hexStringToByteArray("0xd6b391704355efdd37c5630638dc4d3798fc8fa98d60a0c02f45f0aa988e641f");
         String result = unit.serialize(
@@ -51,7 +54,9 @@ public class ResponseSerializerTest {
         when(schemaLoader.loadResponseSchema("testMethod"))
             .thenReturn(responseSchema);
 
-        ResponseSerializer unit = new ResponseSerializer(typesSchemaRoot, schemaLoader);
+        ResponseSerializer unit = new ResponseSerializer(
+                new JsonSchemaTypeResolver(),
+                schemaLoader);
 
         byte[] responseBytes = SerializationUtils.hexStringToByteArray("0x12");
         String result = unit.serialize(
@@ -67,7 +72,9 @@ public class ResponseSerializerTest {
         when(schemaLoader.loadResponseSchema("testMethod"))
             .thenReturn(responseSchema);
 
-        ResponseSerializer unit = new ResponseSerializer(typesSchemaRoot, schemaLoader);
+        ResponseSerializer unit = new ResponseSerializer(
+                new JsonSchemaTypeResolver(),
+                schemaLoader);
         String result = unit.serialize(
                 new JsonRpcResponse(true, "1.0"),
                 "testMethod");
@@ -77,26 +84,91 @@ public class ResponseSerializerTest {
     }
 
     @Test
-    public void testSerializeObjectWithBigInt() throws Exception {
+    public void testSerializeSimpleObject() throws Exception {
+        // use spy for this one because we want the schema loader to
+        // take on its normal behaviour in the non-stubbed methods so
+        // it can load the real (production) types that are nested inside
+        // our "SomeStruct" test type
+        schemaLoader = spy(RpcSchemaLoader.class);
+
         JsonNode responseSchema = om.readTree(
                 "{\"$ref\" : \"derived.json#/definitions/SomeStruct\"} ");
-        when(schemaLoader.loadResponseSchema("testMethod"))
-                .thenReturn(responseSchema);
-        class SomeClass {
-            BigInteger bigInt = BigInteger.valueOf(15);
+        // make the schema loader act as if there is a method called 'testMethod'
+        // that has response schema
+        doReturn(responseSchema).when(
+                schemaLoader).loadResponseSchema("testMethod");
 
-            public BigInteger getBigInt() {
-                return bigInt;
-            }
-        }
+        // make the schema loader act as if there is an Aion RPC type defined
+        // at reference "derived.json#/definitions/SomeStruct" with the
+        // JsonSchema of someStructTypeDef.
+        JsonSchemaRef someStructTypeDef = new JsonSchemaRef(
+                "derived.json#/definitions/SomeStruct");
+        doReturn(someStructJsonSchema).when(
+                schemaLoader).loadSchemaRef(someStructTypeDef);
 
-
-        ResponseSerializer unit = new ResponseSerializer(typesSchemaRoot, schemaLoader);
+        ResponseSerializer unit = new ResponseSerializer(
+                new JsonSchemaTypeResolver(schemaLoader),
+                schemaLoader);
         String result = unit.serialize(
-                new JsonRpcResponse(new SomeClass(), "1.0"),
+                new JsonRpcResponse(new SomeStruct(
+                        SerializationUtils.hexStringToByteArray("0x68d1d3bffe8672cf1e9e85fbdb9f62744ccf7d7ac5848e7d46441169db99112a"),
+                        BigInteger.valueOf(1337)
+                ), "1.0"),
                 "testMethod");
 
-        System.out.println(result);
+        // can't just compare the whole string because ordering
+        // of object fields aren't fixed
+        JsonNode resultJson = om.readTree(result);
+        assertThat(resultJson.get("myQuantity").asText(), is("0x539"));
+        assertThat(resultJson.get("myData").asText(),
+                is("0x68d1d3bffe8672cf1e9e85fbdb9f62744ccf7d7ac5848e7d46441169db99112a"));
 
     }
+
+    // -- SomeStruct set up -------------------------------------------------------------
+    /**
+     * @implNote We do this so we don't have to put 'SomeStruct' into the production
+     * types JsonSchemas (don't want to generate code for it for the real library
+     * during build time since it's for test only), but also don't want to depend
+     * on the definitions in the production types definitions.
+     */
+    private JsonNode someStructJsonSchema = om.readTree(
+            "     {\n" +
+                    "      \"$comment\": \"Test structure used only by unit tests.\",\n" +
+                    "      \"type\": \"object\",\n" +
+                    "      \"properties\": {\n" +
+                    "        \"MyData\": {\"$ref\": \"derived.json#/definitions/DATA32\"},\n" +
+                    "        \"MyQuantity\": {\"$ref\": \"root.json#/definitions/QUANTITY\"}\n" +
+                    "      }\n" +
+                    "    }"
+    );
+
+    /**
+     * @implNote In real usage (i.e. from the Aion kernel), POD types are generated by the
+     * {@link org.aion.api.codegen.GenerateDataHolders} program.  This is a test POD type
+     * for unit testing and also serves as a reference for what that program should
+     * output and how it interacts with {@link RequestDeserializer}.
+     */
+    private static class SomeStruct {
+        private byte[] MyData;
+        private java.math.BigInteger MyQuantity;
+
+        public SomeStruct(
+                byte[] MyData,
+                java.math.BigInteger MyQuantity
+        ) {
+            this.MyData = MyData;
+            this.MyQuantity = MyQuantity;
+        }
+
+        public byte[] getMyData() {
+            return this.MyData;
+        }
+
+        public java.math.BigInteger getMyQuantity() {
+            return this.MyQuantity;
+        }
+    }
+
+
 }

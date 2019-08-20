@@ -1,39 +1,27 @@
 package org.aion.api.serialization;
 
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
+import java.io.IOException;
 import java.math.BigInteger;
-import java.net.URI;
-import java.net.URL;
-import java.util.Arrays;
 
 import org.aion.api.codegen.GenerateDeserializer;
 import org.aion.api.schema.*;
+import org.json.JSONPointer;
+import org.junit.Before;
 import org.junit.Test;
-
-import javax.tools.*;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class RequestDeserializerTest {
     private final ObjectMapper om = new ObjectMapper();
-    private RpcMethodSchemaLoader schemaLoader = mock(
-        RpcMethodSchemaLoader.class);
-    private SchemaValidator validator = new SchemaValidator();
-    private final JsonNode typesSchemaRoot;
+    private RpcSchemaLoader schemaLoader = spy(RpcSchemaLoader.class);
 
-    public RequestDeserializerTest() throws Exception {
-        URL typesUrl = Resources.getResource("schemas/type/root.json");
-        String types = Resources.toString(typesUrl, Charsets.UTF_8);
-        typesSchemaRoot = om.readTree(types);
+    public RequestDeserializerTest() throws IOException {
     }
 
     @Test
@@ -47,8 +35,10 @@ public class RequestDeserializerTest {
                 + "{ \"$ref\" : \"root.json#/definitions/QUANTITY\" }, "
                 + "{ \"type\" : \"boolean\" } "
                 + "]}");
-        when(schemaLoader.loadRequestSchema("testMethod"))
-            .thenReturn(requestSchema);
+        // make the schema loader act as if there is a method called 'testMethod'
+        // that uses requestSchema
+        doReturn(requestSchema).when(
+                schemaLoader).loadRequestSchema("testMethod");
 
         String payload = "{                                                                                                                                                                                                                   \n" +
             "  \"method\": \"testMethod\",\n" +
@@ -59,7 +49,8 @@ public class RequestDeserializerTest {
         RequestDeserializer unit = new RequestDeserializer(
             om,
             schemaLoader,
-            new TestDeserializer()
+            new TestDeserializer(),
+            new JsonSchemaTypeResolver()
         );
         JsonRpcRequest result = unit.deserialize(payload);
 
@@ -81,8 +72,10 @@ public class RequestDeserializerTest {
                 + "[ "
                 + "{ \"$ref\" : \"derived.json#/definitions/DATA32\" } "
                 + "]}");
-        when(schemaLoader.loadRequestSchema("testMethod"))
-            .thenReturn(requestSchema);
+        // make the schema loader act as if there is a method called 'testMethod'
+        // that uses requestSchema
+        doReturn(requestSchema).when(
+                schemaLoader).loadRequestSchema("testMethod");
 
         String payload = "{                                                                                                                                                                                                                   \n" +
             "  \"method\": \"testMethod\",\n" +
@@ -93,7 +86,8 @@ public class RequestDeserializerTest {
         RequestDeserializer unit = new RequestDeserializer(
                 om,
                 schemaLoader,
-                new TestDeserializer()
+                new TestDeserializer(),
+                new JsonSchemaTypeResolver()
         );
 
         try {
@@ -112,8 +106,10 @@ public class RequestDeserializerTest {
                 + "[ "
                 + "{ \"$ref\" : \"derived.json#/definitions/DATA32\" } "
                 + "]}");
-        when(schemaLoader.loadRequestSchema("testMethod"))
-            .thenReturn(requestSchema);
+        // make the schema loader act as if there is a method called 'testMethod'
+        // that uses requestSchema
+        doReturn(requestSchema).when(
+                schemaLoader).loadRequestSchema("testMethod");
 
         String payload = "{                                                                                                                                                                                                                   \n" +
             "  \"method\": \"testMethod\",\n" +
@@ -124,7 +120,8 @@ public class RequestDeserializerTest {
         RequestDeserializer unit = new RequestDeserializer(
                 om,
                 schemaLoader,
-                new TestDeserializer()
+                new TestDeserializer(),
+                new JsonSchemaTypeResolver()
         );
         unit.deserialize(payload);
     }
@@ -138,8 +135,18 @@ public class RequestDeserializerTest {
                         + "[ "
                         + "{ \"$ref\" : \"derived.json#/definitions/SomeStruct\" } "
                         + "]}");
-        when(schemaLoader.loadRequestSchema("testMethod"))
-                .thenReturn(requestSchema);
+        // make the schema loader act as if there is a method called 'testMethod'
+        // that uses requestSchema
+        doReturn(requestSchema).when(
+                schemaLoader).loadRequestSchema("testMethod");
+
+        // make the schema loader act as if there is an Aion RPC type defined
+        // at reference "derived.json#/definitions/SomeStruct" with the
+        // JsonSchema of someStructTypeDef.
+        JsonSchemaRef someStructTypeDef = new JsonSchemaRef(
+                "derived.json#/definitions/SomeStruct");
+        doReturn(someStructJsonSchema).when(
+                schemaLoader).loadSchemaRef(someStructTypeDef);
 
         String payload = "{                                                                                                                                                                                                                   \n" +
                 "  \"method\": \"testMethod\",\n" +
@@ -153,7 +160,8 @@ public class RequestDeserializerTest {
         RequestDeserializer unit = new RequestDeserializer(
                 om,
                 schemaLoader,
-                new TestDeserializer()
+                new TestDeserializer(),
+                new JsonSchemaTypeResolver(schemaLoader)
         );
         JsonRpcRequest result = unit.deserialize(payload);
 
@@ -178,8 +186,18 @@ public class RequestDeserializerTest {
                         + "[ "
                         + "{ \"$ref\" : \"derived.json#/definitions/SomeStruct\" } "
                         + "]}");
-        when(schemaLoader.loadRequestSchema("testMethod"))
-                .thenReturn(requestSchema);
+        // make the schema loader act as if there is a method called 'testMethod'
+        // that uses requestSchema
+        doReturn(requestSchema).when(
+                schemaLoader).loadRequestSchema("testMethod");
+
+        // make the schema loader act as if there is an Aion RPC type defined
+        // at reference "derived.json#/definitions/SomeStruct" with the
+        // JsonSchema of someStructTypeDef.
+        JsonSchemaRef someStructTypeDef = new JsonSchemaRef(
+                "derived.json#/definitions/SomeStruct");
+        doReturn(someStructJsonSchema).when(
+                schemaLoader).loadSchemaRef(someStructTypeDef);
 
         String payload = "{                                                                                                                                                                                                                   \n" +
                 "  \"method\": \"testMethod\",\n" +
@@ -193,10 +211,29 @@ public class RequestDeserializerTest {
         RequestDeserializer unit = new RequestDeserializer(
                 om,
                 schemaLoader,
-                new TestDeserializer()
+                new TestDeserializer(),
+                new JsonSchemaTypeResolver(schemaLoader)
         );
         unit.deserialize(payload);
     }
+
+    // -- SomeStruct set up -------------------------------------------------------------
+    /**
+     * @implNote We do this so we don't have to put 'SomeStruct' into the production
+     * types JsonSchemas (don't want to generate code for it for the real library
+     * during build time since it's for test only), but also don't want to depend
+     * on the definitions in the production types definitions.
+     */
+    private JsonNode someStructJsonSchema = om.readTree(
+            "     {\n" +
+                    "      \"$comment\": \"Test structure used only by unit tests.\",\n" +
+                    "      \"type\": \"object\",\n" +
+                    "      \"properties\": {\n" +
+                    "        \"MyData\": {\"$ref\": \"derived.json#/definitions/DATA32\"},\n" +
+                    "        \"MyQuantity\": {\"$ref\": \"root.json#/definitions/QUANTITY\"}\n" +
+                    "      }\n" +
+                    "    }"
+    );
 
     /**
      * @implNote In real usage (i.e. from the Aion kernel), the {@link RpcTypeDeserializer}

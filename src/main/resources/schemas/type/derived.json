@@ -7,7 +7,7 @@
       "description": "DATA, 32 bytes",
       "allOf": [
         {"$ref": "root.json#/definitions/DATA"},
-        {"minLength": 66, "maxLength": 66}
+        {"minLength": 66, "maxLength": 66, "description": "32 bytes"}
       ]
     },
 
@@ -15,7 +15,7 @@
       "description": "DATA, 64 bytes",
       "allOf": [
         {"$ref": "root.json#/definitions/DATA"},
-        {"minLength": 130, "maxLength": 130}
+        {"minLength": 130, "maxLength": 130, "description": "64 bytes"}
       ]
     },
 

@@ -1,11 +1,15 @@
 package org.aion.api.codegen;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import freemarker.template.Configuration;
-import org.aion.api.schema.*;
+import org.aion.api.schema.JsonSchemaErrorResolver;
+import org.aion.api.schema.JsonSchemaTypeResolver;
+import org.aion.api.schema.NamedRpcType;
+import org.aion.api.schema.RpcError;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -19,15 +23,17 @@ public class GenerateDocs {
         System.exit(new GenerateDocs().go(args));
     }
 
-    private GenerateDocs() {
+    private final ObjectMapper om;
 
+    private GenerateDocs() {
+        this.om = new ObjectMapper();
     }
 
     private int go(String args[]) throws Exception {
         Configuration freemarker = CodeGenUtils.configureFreemarker();
         JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
         JsonSchemaErrorResolver errorResolver = new JsonSchemaErrorResolver();
-        Map<String, RpcError> errors = CodeGenUtils.retrieveErrorDefinitions(new ObjectMapper());
+        Map<String, RpcError> errors = CodeGenUtils.retrieveErrorDefinitions(om);
 
         List<Method> methods = new LinkedList<>();
         for(Map.Entry<String, String> md : getMethodsAndDescriptions().entrySet()) {
@@ -71,9 +77,9 @@ public class GenerateDocs {
         return 0;
     }
 
-    private static List<Error> buildErrors(JsonNode schema,
-                                              JsonSchemaErrorResolver errorResolver,
-                                              Map<String, RpcError> errors) {
+    private List<Error> buildErrors(JsonNode schema,
+                                    JsonSchemaErrorResolver errorResolver,
+                                    Map<String, RpcError> errors) {
         if(schema == null) {
             return List.of();
         }
@@ -88,22 +94,25 @@ public class GenerateDocs {
                 ).collect(Collectors.toList());
     }
 
-    private static Example buildExample(JsonNode reqSchema,
-                                        JsonNode rezSchema) {
+    private Example buildExample(JsonNode reqSchema,
+                                 JsonNode rezSchema)
+    throws JsonProcessingException {
         JsonNode reqEx = reqSchema.get("examples");
         JsonNode rezEx = rezSchema.get("examples");
 
         if(reqEx != null && rezEx != null
             && reqEx.get(0) != null && rezEx.get(0) != null) {
 
-            return new Example(reqEx.get(0), rezEx.get(0));
+            String reqJson = om.writerWithDefaultPrettyPrinter().writeValueAsString(reqEx.get(0));
+            String rezJson = om.writerWithDefaultPrettyPrinter().writeValueAsString(rezEx.get(0));
+            return new Example(reqJson, rezJson);
         } else {
             return null;
         }
     }
 
-    private static Returns buildReturns(JsonNode schema,
-                                        JsonSchemaTypeResolver resolver) {
+    private Parameter buildReturns(JsonNode schema,
+                                 JsonSchemaTypeResolver resolver) {
         NamedRpcType returns = resolver.resolveNamedSchema(schema);
 
         String description = "";
@@ -112,11 +121,11 @@ public class GenerateDocs {
             description = maybeDescription.asText();
         }
 
-        return new Returns(returns, description);
+        return new Parameter(returns, description);
     }
 
-    private static List<Parameter> buildParameters(JsonNode schema,
-                                                   JsonSchemaTypeResolver resolver) {
+    private List<Parameter> buildParameters(JsonNode schema,
+                                            JsonSchemaTypeResolver resolver) {
         List<Parameter> parameters = new LinkedList<>();
         for(Iterator<JsonNode> it = schema.get("items").elements(); it.hasNext() ; ) {
             JsonNode paramJson = it.next();
@@ -134,7 +143,7 @@ public class GenerateDocs {
         return parameters;
     }
 
-    private static Map<String, String> getMethodsAndDescriptions() throws IOException {
+    private Map<String, String> getMethodsAndDescriptions() throws IOException {
         URL methodsUrl = Resources.getResource("methods.txt");
         String methods = Resources.toString(methodsUrl, Charsets.UTF_8);
         String[] methodList = methods.split("\n");
@@ -144,7 +153,7 @@ public class GenerateDocs {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private static Map.Entry<String, String> splitMethodLine(String line) {
+    private Map.Entry<String, String> splitMethodLine(String line) {
         String[] pieces = line.split(" ");
         if(pieces.length == 1) {
             return new AbstractMap.SimpleEntry<>(pieces[0], "");
@@ -159,14 +168,14 @@ public class GenerateDocs {
         private final String name;
         private final String description;
         private final List<Parameter> parameters;
-        private final Returns returns;
+        private final Parameter returns;
         private final Example example;
         private final List<Error> errors;
 
         public Method(String name,
                       String description,
                       List<Parameter> parameters,
-                      Returns returns,
+                      Parameter returns,
                       Example example,
                       List<Error> errors
         ) {
@@ -190,7 +199,7 @@ public class GenerateDocs {
             return parameters;
         }
 
-        public Returns getReturns() {
+        public Parameter getReturns() {
             return returns;
         }
 
@@ -204,20 +213,35 @@ public class GenerateDocs {
     }
 
     public static class Parameter {
-        private final NamedRpcType type;
+//        private final NamedRpcType type;
         private final String description;
+        private final String baseTypeName;
+        private final String typeDetail;
 
         private Parameter(NamedRpcType type, String description) {
-            this.type = type;
-            this.description = description;
-        }
+            this.baseTypeName = type.getRootType().getName();
 
-        public NamedRpcType getType() {
-            return type;
+            String maybeTypeDetail = null;
+            if(type.getConstraints() != null) {
+                JsonNode maybeDescription = type.getConstraints().get("description");
+                if(maybeDescription != null) {
+                    maybeTypeDetail = type.getConstraints().get("description").asText();
+                }
+            }
+            this.typeDetail = maybeTypeDetail;
+            this.description = description;
         }
 
         public String getDescription() {
             return description;
+        }
+
+        public String getBaseTypeName() {
+            return baseTypeName;
+        }
+
+        public String getTypeDetail() {
+            return typeDetail;
         }
     }
 
@@ -240,19 +264,19 @@ public class GenerateDocs {
     }
 
     public static class Example {
-        private final JsonNode request;
-        private final JsonNode response;
+        private final String request;
+        private final String response;
 
-        public Example(JsonNode request, JsonNode response) {
+        public Example(String request, String response) {
             this.request = request;
             this.response = response;
         }
 
-        public JsonNode getRequest() {
+        public String getRequest() {
             return request;
         }
 
-        public JsonNode getResponse() {
+        public String getResponse() {
             return response;
         }
     }

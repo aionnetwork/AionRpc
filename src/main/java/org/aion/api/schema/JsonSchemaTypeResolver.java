@@ -184,10 +184,6 @@ public class JsonSchemaTypeResolver {
         );
     }
 
-    /**
-     * @implNote The resolved RpcType does not have a Java Class name at this point.  It is
-     * the responsibility of {@link #resolveRef(JsonNode)} to define.
-     */
     private RpcType resolveObject(String javaTypeName,
                                   JsonNode schema) {
         JsonNode props = schema.get("properties");
@@ -201,7 +197,7 @@ public class JsonSchemaTypeResolver {
             Map.Entry<String, JsonNode> prop = iter.next();
             JsonNode propDefinition = prop.getValue();
             fields.add(new Field(prop.getKey(),
-                resolveSchema(propDefinition)));
+                resolveSchema(propDefinition), propDefinition));
         }
 
         return new RpcType(

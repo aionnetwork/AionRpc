@@ -1,6 +1,6 @@
 getseed
 submitseed
 submitsignature
-eth_getTransactionByHash2
-eth_call2
-eth_sendTransaction2
+eth_getTransactionByHash2 Returns the information about a transaction requested by transaction hash
+eth_call2 Executes a new message call immediately without creating a transaction on the block chain
+eth_sendTransaction2 Creates new message call transaction or a contract creation, if the data field contains code.<br/><br/>This method requires that the account of the transaction sender by unlocked.

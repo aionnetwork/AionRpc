@@ -17,11 +17,11 @@ import java.util.List;
  */
 public class JsonSchemaErrorResolver {
 
-    public List<String> resolve(JsonNode schema) {
+    public List<ErrorUsage> resolve(JsonNode schema) {
         return resolve(schema, false);
     }
 
-    private List<String> resolve(JsonNode schema, boolean inAnyOf) {
+    private List<ErrorUsage> resolve(JsonNode schema, boolean inAnyOf) {
         //TODO error handling / bad input cases need work
 
         if(schema.has("$ref")) {
@@ -32,7 +32,12 @@ public class JsonSchemaErrorResolver {
                         + schema.toString());
             }
             String errTypeName = refPieces[refPieces.length-1];
-            return List.of(errTypeName);
+            String reason = null;
+            if(schema.has("description")) {
+                reason = schema.get("description").asText();
+            }
+
+            return List.of(new ErrorUsage(errTypeName, reason));
         } else if (schema.has("anyOf")) {
             // recursive case -- only allowed to recurse once (can't nest anyOfs)
             if(inAnyOf) {
@@ -40,14 +45,14 @@ public class JsonSchemaErrorResolver {
                         "Not allowed to nest anyOfs in schema.  Given schema: "
                                 + schema.toString());
             }
-            LinkedList<String> errors = new LinkedList<>();
+            LinkedList<ErrorUsage> errors = new LinkedList<>();
 
             JsonNode anyOf = schema.get("anyOf");
             for(Iterator<JsonNode> it = anyOf.elements(); it.hasNext(); ) {
                 JsonNode curr = it.next();
-                String errName = resolve(curr, true)
+                ErrorUsage errUsage = resolve(curr, true)
                         .get(0); // since elements must be scalar
-                errors.add(errName);
+                errors.add(errUsage);
             }
             return errors;
         } else {

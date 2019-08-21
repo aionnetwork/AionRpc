@@ -17,7 +17,7 @@ public class RpcProcessor2 extends AbstractRpcProcessor {
         this.rpc = rpc;
     }
 
-    public Object execute(JsonRpcRequest req) throws Exception {
+    public Object execute(JsonRpcRequest req) throws RpcException {
         Object[] params = req.getParams();
         switch(req.getMethod()) {
 <#list javaMethodCalls as jmc>

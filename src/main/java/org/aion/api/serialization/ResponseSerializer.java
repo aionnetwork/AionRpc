@@ -56,6 +56,10 @@ public class ResponseSerializer {
      */
     public String serialize(JsonRpcResponse resp, String method)
     throws IOException, SchemaValidationException {
+        if(resp.getKind() == JsonRpcResponse.Kind.ERROR) {
+            return serializeError(resp);
+        }
+
         JsonNode responseSchema = schemaLoader.loadResponseSchema(method);
 
         if(responseSchema.get("$ref") != null) {
@@ -111,6 +115,15 @@ public class ResponseSerializer {
         throw new UnsupportedOperationException(
             "Don't know how to serialize return type.  Return type schema: "
                 + responseSchema.toString());
+    }
+
+    private String serializeError(JsonRpcResponse resp) {
+        return String.format("{"
+                + "\"jsonrpc\": \"%s\","
+                + "\"id\": \"%s\","
+                + "\"error\": %s"
+                + "}", resp.getJsonrpc(), resp.getId(), resp.getError()
+        );
     }
 
     private static class BigIntSerializer extends StdSerializer<BigInteger> {

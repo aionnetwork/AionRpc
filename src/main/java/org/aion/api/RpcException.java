@@ -43,7 +43,7 @@ public class RpcException extends Exception {
     }
 
     public static RpcException invalidParams(String data) {
-        return new RpcException(-32602, "Invalid request", data);
+        return new RpcException(-32602, "Invalid params", data);
     }
 
     public static RpcException internalError(String data) {

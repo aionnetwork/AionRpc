@@ -7,8 +7,8 @@
     "Unauthorized": {
       "type": "object",
       "properties": {
-        "code": 10001,
-        "message": "Unauthorized",
+        "code": { "const": 10001 } ,
+        "message": { "const": "Unauthorized" },
         "data": {"type": "string"}
       }
 

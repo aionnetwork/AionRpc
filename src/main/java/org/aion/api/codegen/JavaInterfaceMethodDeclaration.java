@@ -6,11 +6,16 @@ public class JavaInterfaceMethodDeclaration {
     private final String methodName;
     private final String returnType;
     private final List<String> args;
+    private final List<String> exceptions;
 
-    public JavaInterfaceMethodDeclaration(String methodName, String returnType, List<String> args) {
+    public JavaInterfaceMethodDeclaration(String methodName,
+                                          String returnType,
+                                          List<String> args,
+                                          List<String> exceptions) {
         this.methodName = methodName;
         this.returnType = returnType;
         this.args = args;
+        this.exceptions = exceptions;
     }
 
     public String getMethodName() {
@@ -23,5 +28,9 @@ public class JavaInterfaceMethodDeclaration {
 
     public List<String> getArgs() {
         return args;
+    }
+
+    public List<String> getExceptions() {
+        return exceptions;
     }
 }

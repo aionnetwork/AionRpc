@@ -2,7 +2,7 @@ package org.aion.api.server.rpc2.autogen;
 import org.aion.api.server.rpc2.AbstractRpcProcessor;
 import org.aion.api.serialization.JsonRpcRequest;
 import org.aion.api.server.rpc2.autogen.pod.*;
-import org.aion.api;
+import org.aion.api.RpcException;
 
 /******************************************************************************
  *

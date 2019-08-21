@@ -22,9 +22,9 @@ public class GenerateRpcInterface {
         new GenerateRpcInterface().generateRpcInterface();
     }
 
-    public GenerateRpcInterface() { }
+    private GenerateRpcInterface() { }
 
-    public void generateRpcInterface() throws Exception {
+    private void generateRpcInterface() throws Exception {
         Configuration freemarker = CodeGenUtils.configureFreemarker();
 
         List<String> methods = CodeGenUtils.loadMethodList();
@@ -33,10 +33,19 @@ public class GenerateRpcInterface {
         for(String method: methods) {
             URL reqUrl = Resources.getResource("schemas/" + method + ".request.json");
             URL rezUrl = Resources.getResource("schemas/" + method + ".response.json");
+            URL errUrl;
+            try {
+                // because errors not mandatory
+                errUrl = Resources.getResource("schemas/" + method + ".error.json");
+            } catch (IllegalArgumentException iax) {
+                errUrl = null;
+            }
             String req = Resources.toString(reqUrl, Charsets.UTF_8);
             String rez = Resources.toString(rezUrl, Charsets.UTF_8);
+            String err = errUrl != null ? Resources.toString(errUrl, Charsets.UTF_8) : null;
             JsonNode reqRoot = new ObjectMapper().readTree(req);
             JsonNode rezRoot = new ObjectMapper().readTree(rez);
+            JsonNode errRoot = err != null ? new ObjectMapper().readTree(err) : null;
 
             // Resolve types
             JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
@@ -53,11 +62,20 @@ public class GenerateRpcInterface {
             //TODO: Assuming every parameter always has the same type in the RPC method
 //            List<String> arguments = Sets.cartesianProduct(inputTypes).iterator().next();
 
+            // Check the error codes, if exists
+            // TODO should support multiple errors
+            String errTypeName = null;
+            if(errRoot != null) {
+                // wasteful ... we parse everything just to get the name of the $ref
+                String[] refPieces = errRoot.get("$ref").asText().split("/");
+                errTypeName = refPieces[refPieces.length-1];
+            }
+
             RpcType retType = resolver.resolveSchema(rezRoot);
             declarations.add(new JavaInterfaceMethodDeclaration(
-                    method, retType.getJavaTypeName(), inputTypes));
+                    method, retType.getJavaTypeName(), inputTypes,
+                    errTypeName != null ? List.of(errTypeName) : List.of()));
 
-            // Ftl setup for Request
         }
 
         Map<String, Object> ftlMap = new HashMap<>();

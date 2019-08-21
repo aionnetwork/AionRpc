@@ -100,4 +100,25 @@ public class RequestDeserializer {
         req.setParams(reqParams);
         return req;
     }
+
+    /**
+     * Try to serialize the request json payload and get the id.  If anything
+     * fails, return null instead.  Intended for handling malformed requests
+     * as a best-effort to get some sort of id to attach to the error response.
+     */
+    public String idOfRequest(String requestJsonPayload) {
+        try {
+            JsonNode req = om.readTree(requestJsonPayload);
+            if(req == null) {
+                return null;
+            }
+            JsonNode id = req.get("id");
+            if(id == null) {
+                return null;
+            }
+            return id.asText();
+        } catch (IOException ex) {
+            return null;
+        }
+    }
 }

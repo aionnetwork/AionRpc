@@ -19,9 +19,9 @@ public class JsonRpcError  {
         return jsonrpc;
     }
 
-    public JsonRpcError(RpcException result, String id, String jsonrpc) {
+    public JsonRpcError(RpcException result, String id) {
         this.result = result;
         this.id = id;
-        this.jsonrpc = jsonrpc;
+        this.jsonrpc = "2.0";
     }
 }

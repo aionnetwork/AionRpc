@@ -21,14 +21,16 @@ import org.aion.api.schema.SchemaValidationException;
 import org.aion.api.schema.SchemaValidator;
 
 public class ResponseSerializer {
-    private final ObjectMapper om = new ObjectMapper();
+    private final ObjectMapper om;
     private final JsonSchemaTypeResolver resolver;
     private final RpcSchemaLoader schemaLoader;
     private final SchemaValidator validator = new SchemaValidator();
 
     /** Constructor */
     public ResponseSerializer() {
-        this(new JsonSchemaTypeResolver(), new RpcSchemaLoader());
+        this(new JsonSchemaTypeResolver(),
+                new RpcSchemaLoader(),
+                new ObjectMapper());
     }
 
     /**
@@ -37,9 +39,11 @@ public class ResponseSerializer {
      */
     @VisibleForTesting
     public ResponseSerializer(JsonSchemaTypeResolver resolver,
-                              RpcSchemaLoader schemaLoader) {
+                              RpcSchemaLoader schemaLoader,
+                              ObjectMapper om) {
         this.resolver = resolver;
         this.schemaLoader = schemaLoader;
+        this.om = om;
 
         SimpleModule customSerializers = new SimpleModule();
         customSerializers.addSerializer(byte[].class, new BytesSerializer());
@@ -121,9 +125,12 @@ public class ResponseSerializer {
         try {
             errorJson = om.writeValueAsString(error.getResult());
         } catch (JsonProcessingException jpx) {
+            // If we throw while serializing an error, that is itself an error.
+            // Construct JSON out of a string we know works and put in as much
+            // info from the exception into the data as we can.
             errorJson = String.format(
-                    "{\"code\": -32603, \"message\": \"Internal error\", \"data\": \"%s\"}",
-                    jpx.toString());
+                    "{\"code\": -32603, \"message\": \"Internal error\", \"data\": %s}",
+                    org.json.JSONObject.quote(jpx.toString()));
         }
         return String.format("{"
                     + "\"jsonrpc\": \"%s\","
@@ -135,6 +142,7 @@ public class ResponseSerializer {
                 errorJson);
     }
 
+    // -- Serializers for Jackson -------------------------------------------------------
     private static class RpcExceptionSerializer extends StdSerializer<RpcException> {
         public RpcExceptionSerializer() {
             this(null);

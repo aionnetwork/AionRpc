@@ -1,5 +1,6 @@
 package org.aion.api.serialization;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
@@ -18,7 +19,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class ResponseSerializerTest {
-    private final ObjectMapper om = new ObjectMapper();
+    private ObjectMapper om = new ObjectMapper();
     private RpcSchemaLoader schemaLoader = mock(RpcSchemaLoader.class);
 
     public ResponseSerializerTest() throws Exception {
@@ -33,7 +34,8 @@ public class ResponseSerializerTest {
 
         ResponseSerializer unit = new ResponseSerializer(
                 new JsonSchemaTypeResolver(),
-                schemaLoader);
+                schemaLoader,
+                om);
 
         byte[] responseBytes = SerializationUtils.hexStringToByteArray("0xd6b391704355efdd37c5630638dc4d3798fc8fa98d60a0c02f45f0aa988e641f");
         String result = unit.serialize(
@@ -52,7 +54,8 @@ public class ResponseSerializerTest {
 
         ResponseSerializer unit = new ResponseSerializer(
                 new JsonSchemaTypeResolver(),
-                schemaLoader);
+                schemaLoader,
+                om);
 
         byte[] responseBytes = SerializationUtils.hexStringToByteArray("0x12");
         String result = unit.serialize(
@@ -70,7 +73,8 @@ public class ResponseSerializerTest {
 
         ResponseSerializer unit = new ResponseSerializer(
                 new JsonSchemaTypeResolver(),
-                schemaLoader);
+                schemaLoader,
+                om);
         String result = unit.serialize(
                 new JsonRpcResponse(true, "1.0"),
                 "testMethod");
@@ -104,7 +108,7 @@ public class ResponseSerializerTest {
 
         ResponseSerializer unit = new ResponseSerializer(
                 new JsonSchemaTypeResolver(schemaLoader),
-                schemaLoader);
+                schemaLoader, om);
         String result = unit.serialize(
                 new JsonRpcResponse(new SomeStruct(
                         SerializationUtils.hexStringToByteArray("0x68d1d3bffe8672cf1e9e85fbdb9f62744ccf7d7ac5848e7d46441169db99112a"),
@@ -122,13 +126,13 @@ public class ResponseSerializerTest {
     }
 
     @Test
-    public void serializeError() throws Exception {
+    public void testSerializeError() throws Exception {
         ResponseSerializer unit = new ResponseSerializer(
                 new JsonSchemaTypeResolver(schemaLoader),
-                schemaLoader);
+                schemaLoader, om);
         RpcException exception = RpcException.invalidParams("myMessage");
         String result = unit.serializeError(
-                new JsonRpcError(exception, "1", "2.0"));
+                new JsonRpcError(exception, "1"));
 
         // can't just compare the whole string because ordering
         // of object fields aren't fixed
@@ -138,6 +142,30 @@ public class ResponseSerializerTest {
         assertThat(resultJson.get("error").get("code").asInt(), is(RpcException.invalidParams("any").getCode()));
         assertThat(resultJson.get("error").get("message").asText(), is(RpcException.invalidParams("any").getMessage()));
         assertThat(resultJson.get("error").get("data").asText(), is("myMessage"));
+    }
+
+    @Test
+    public void testSerializeErrorWhenErrorHandlerThrows() throws Exception {
+        om = spy(ObjectMapper.class);
+        ResponseSerializer unit = new ResponseSerializer(
+                new JsonSchemaTypeResolver(schemaLoader),
+                schemaLoader, om);
+        JsonProcessingException jpx = new JsonProcessingException("my error has \"\nquotes\"") {{}};
+        doThrow(jpx).when(om).writeValueAsString(any());
+
+        RpcException exception = RpcException.invalidParams("myMessage");
+        String result = unit.serializeError(
+                new JsonRpcError(exception, "1"));
+
+        // can't just compare the whole string because ordering
+        // of object fields aren't fixed
+        JsonNode resultJson = om.readTree(result);
+        assertThat(resultJson.get("jsonrpc").asText(), is("2.0"));
+        assertThat(resultJson.get("id").asText(), is("1"));
+        assertThat(resultJson.get("error").get("code").asInt(), is(RpcException.internalError("any").getCode()));
+        assertThat(resultJson.get("error").get("message").asText(), is(RpcException.internalError("any").getMessage()));
+        assertThat(resultJson.get("error").get("data").asText().contains("my error has \"\nquotes\""),
+                is(true));
     }
 
     // -- SomeStruct set up -------------------------------------------------------------

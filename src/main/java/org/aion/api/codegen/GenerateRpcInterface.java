@@ -65,7 +65,10 @@ public class GenerateRpcInterface {
             if(errRoot == null) {
                 throwableNames = List.of();
             } else {
-                throwableNames = new JsonSchemaErrorResolver().resolve(errRoot);
+                throwableNames = new JsonSchemaErrorResolver().resolve(errRoot)
+                        .stream()
+                        .map(e -> e.getErrorName())
+                        .collect(Collectors.toList());
             }
 
             RpcType retType = resolver.resolveSchema(rezRoot);

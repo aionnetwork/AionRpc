@@ -9,10 +9,18 @@
   "items": [
     {
       "$ref": "derived.json#/definitions/DATA32",
-      "description": "hash of a transaction (32 bytes)"
+      "description": "hash of a transaction"
     }
   ],
 
   "examples": [
+    {
+      "method": "eth_getTransactionByHash",
+      "params": [
+        "0xfafcae97932003ef1b6a896d51c47b2abb88d97339861dc803d21424dfe0402b"
+      ],
+      "id": "1",
+      "jsonrpc": "2.0"
+    }
   ]
 }

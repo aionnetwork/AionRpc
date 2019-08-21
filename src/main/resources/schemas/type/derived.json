@@ -7,7 +7,7 @@
       "description": "DATA, 32 bytes",
       "allOf": [
         {"$ref": "root.json#/definitions/DATA"},
-        {"minLength": 66, "maxLength": 66}
+        {"minLength": 66, "maxLength": 66, "description": "32 bytes"}
       ]
     },
 
@@ -15,27 +15,69 @@
       "description": "DATA, 64 bytes",
       "allOf": [
         {"$ref": "root.json#/definitions/DATA"},
-        {"minLength": 130, "maxLength": 130}
+        {"minLength": 130, "maxLength": 130, "description": "64 bytes"}
       ]
     },
 
     "Transaction": {
       "type": "object",
       "properties": {
-        "blockHash": {"$ref": "derived.json#/definitions/DATA32"},
-        "blockNumber": {"$ref": "derived.json#/definitions/QUANTITY"},
-        "from": {"$ref": "derived.json#/definitions/DATA32"},
-        "nrg": {"$ref": "derived.json#/definitions/QUANTITY"},
-        "nrgPrice": {"$ref": "derived.json#/definitions/QUANTITY"},
-        "gas": {"$ref": "derived.json#/definitions/QUANTITY"},
-        "gasPrice": {"$ref": "derived.json#/definitions/QUANTITY"},
-        "hash": {"$ref": "derived.json#/definitions/DATA32"},
-        "input": {"$ref": "derived.json#/definitions/DATA"},
-        "nonce": {"$ref": "derived.json#/definitions/QUANTITY"},
-        "to": {"$ref": "derived.json#/definitions/DATA32"},
-        "transactionIndex": {"$ref": "derived.json#/definitions/QUANTITY"},
-        "value": {"$ref": "derived.json#/definitions/QUANTITY"},
-        "timestamp": {"$ref": "derived.json#/definitions/QUANTITY"}
+        "blockHash": {
+          "$ref": "derived.json#/definitions/DATA32",
+          "description": "hash of the block where this was in; null when it is pending."
+        },
+        "blockNumber": {
+          "$ref": "derived.json#/definitions/QUANTITY",
+          "description": "block number where this transaction was in; null when it is pending."
+        },
+        "from": {
+          "$ref": "derived.json#/definitions/DATA32",
+          "description": "address of the sender"
+        },
+        "nrg": {
+          "$ref": "derived.json#/definitions/QUANTITY",
+          "description": "energy provided by the sender"
+        },
+        "nrgPrice": {
+          "$ref": "derived.json#/definitions/QUANTITY",
+          "description": "energy price provided by the sender in nAmps"
+        },
+        "gas": {
+          "$ref": "derived.json#/definitions/QUANTITY",
+          "description": "same as nrg; duplicated for Etheruem-compatibility purposes"
+        },
+        "gasPrice": {
+          "$ref": "derived.json#/definitions/QUANTITY",
+          "description": "same as nrgPrice; duplicated for Ethereum-compatibility purposes"
+        },
+        "hash": {
+          "$ref": "derived.json#/definitions/DATA32",
+          "description": "hash of the transaction"
+        },
+        "input": {
+          "$ref": "derived.json#/definitions/DATA",
+          "description": "the data of the transaction"
+        },
+        "nonce": {
+          "$ref": "derived.json#/definitions/QUANTITY",
+          "description": "the number of transactions made by the sender prior to this one"
+        },
+        "to": {
+          "$ref": "derived.json#/definitions/DATA32",
+          "description": "address of the receiver; null when it is a contract creation transaction"
+        },
+        "transactionIndex": {
+          "$ref": "derived.json#/definitions/QUANTITY",
+          "description": "integer of the transaction's index position in the block; null when it is pending"
+        },
+        "value": {
+          "$ref": "derived.json#/definitions/QUANTITY",
+          "description": "value transferred in nAmps"
+        },
+        "timestamp": {
+          "$ref": "derived.json#/definitions/QUANTITY",
+          "description": "the Unix timestamp for when the transaction was sent, in seconds"
+        }
       }
     },
 

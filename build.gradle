@@ -45,7 +45,7 @@ repositories {
 }
 
 def printStdoutWarning() { 
-            println """
+            System.err.println """
 kernelRoot was not specified, so generated sources will be printed to stdout.
 Use -PkernelRoot=/path/to/aion/root to write source files into their expected
 location.  
@@ -111,7 +111,20 @@ task genExceptions(type: JavaExec) {
     } 
 }
 
-task generateAll {
+task generateDocs(type: JavaExec) {
+    dependsOn 'classes'
+    main = 'org.aion.api.codegen.GenerateDocs'
+    classpath = sourceSets.main.runtimeClasspath
+
+    //if(project.hasProperty("kernelRoot")) { 
+        //def subpath = "/tmp/doc.md"
+        standardOutput = new FileOutputStream('/tmp/doc.md')
+    //} else {
+    //    printStdoutWarning()
+    //}
+}
+
+task generateJava {
     dependsOn genRpcProcessor
     dependsOn genRpcInterface
     dependsOn genDataHolders

@@ -1,14 +1,18 @@
 package org.aion.api.schema;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.util.Objects;
 
 public class Field {
     private final String name;
     private final RpcType type;
+    private final JsonNode definition;
 
-    public Field(String name, RpcType type) {
+    public Field(String name, RpcType type, JsonNode definition) {
         this.name = name;
         this.type = type;
+        this.definition = definition;
     }
 
     public String getName() {
@@ -35,5 +39,9 @@ public class Field {
     @Override
     public int hashCode() {
         return Objects.hash(name, type);
+    }
+
+    public JsonNode getDefinition() {
+        return definition;
     }
 }

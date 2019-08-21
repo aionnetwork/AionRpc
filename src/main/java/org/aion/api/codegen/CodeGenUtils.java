@@ -12,6 +12,7 @@ import org.aion.api.schema.*;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CodeGenUtils {
     static Configuration configureFreemarker() {
@@ -28,7 +29,10 @@ public class CodeGenUtils {
         URL methodsUrl = Resources.getResource("methods.txt");
         String methods = Resources.toString(methodsUrl, Charsets.UTF_8);
         String[] methodList = methods.split("\n");
-        return Arrays.asList(methodList);
+        return Arrays.asList(methodList).stream()
+                // the method name is the first word on each line
+                .map(line -> line.split(" ")[0])
+                .collect(Collectors.toList());
     }
 
     static List<NamedRpcType> retrieveObjectDerivedRpcTypes(ObjectMapper om,
@@ -85,7 +89,7 @@ public class CodeGenUtils {
 
             int code = props.get("code").get("const").asInt();
             String message = props.get("message").get("const").asText();
-            errors.put(name, new RpcError(code, message));
+            errors.put(name, new RpcError(name, code, message));
         }
 
         return errors;

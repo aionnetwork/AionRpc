@@ -6,5 +6,10 @@
 
   "$ref": "root.json#/definitions/DATA",
   "examples": [
+    {
+      "result": "0x000000000000000000000000000000fe",
+      "id": 1,
+      "jsonrpc": "2.0"
+    }
   ]
 }

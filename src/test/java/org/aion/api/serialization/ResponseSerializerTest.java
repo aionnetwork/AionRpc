@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import org.aion.api.RpcException;
 import org.aion.api.schema.JsonSchemaRef;
 import org.aion.api.schema.JsonSchemaTypeResolver;
 import org.aion.api.schema.SchemaValidationException;
@@ -19,13 +20,8 @@ import static org.mockito.Mockito.*;
 public class ResponseSerializerTest {
     private final ObjectMapper om = new ObjectMapper();
     private RpcSchemaLoader schemaLoader = mock(RpcSchemaLoader.class);
-    private final JsonNode typesSchemaRoot;
-
 
     public ResponseSerializerTest() throws Exception {
-        URL typesUrl = Resources.getResource("schemas/type/root.json");
-        String types = Resources.toString(typesUrl, Charsets.UTF_8);
-        typesSchemaRoot = om.readTree(types);
     }
 
     @Test
@@ -125,6 +121,25 @@ public class ResponseSerializerTest {
 
     }
 
+    @Test
+    public void serializeError() throws Exception {
+        ResponseSerializer unit = new ResponseSerializer(
+                new JsonSchemaTypeResolver(schemaLoader),
+                schemaLoader);
+        RpcException exception = RpcException.invalidParams("myMessage");
+        String result = unit.serializeError(
+                new JsonRpcError(exception, "1", "2.0"));
+
+        // can't just compare the whole string because ordering
+        // of object fields aren't fixed
+        JsonNode resultJson = om.readTree(result);
+        assertThat(resultJson.get("jsonrpc").asText(), is("2.0"));
+        assertThat(resultJson.get("id").asText(), is("1"));
+        assertThat(resultJson.get("error").get("code").asInt(), is(RpcException.invalidParams("any").getCode()));
+        assertThat(resultJson.get("error").get("message").asText(), is(RpcException.invalidParams("any").getMessage()));
+        assertThat(resultJson.get("error").get("data").asText(), is("myMessage"));
+    }
+
     // -- SomeStruct set up -------------------------------------------------------------
     /**
      * @implNote We do this so we don't have to put 'SomeStruct' into the production
@@ -169,6 +184,4 @@ public class ResponseSerializerTest {
             return this.MyQuantity;
         }
     }
-
-
 }

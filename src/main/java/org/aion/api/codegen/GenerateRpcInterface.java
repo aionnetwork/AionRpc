@@ -59,22 +59,19 @@ public class GenerateRpcInterface {
                     .map(t -> t.getJavaTypeName())
                     .collect(Collectors.toList());
 
-            //TODO: Assuming every parameter always has the same type in the RPC method
-//            List<String> arguments = Sets.cartesianProduct(inputTypes).iterator().next();
-
             // Check the error codes, if exists
             // TODO should support multiple errors
-            String errTypeName = null;
-            if(errRoot != null) {
-                // wasteful ... we parse everything just to get the name of the $ref
-                String[] refPieces = errRoot.get("$ref").asText().split("/");
-                errTypeName = refPieces[refPieces.length-1];
+            List<String> throwableNames;
+            if(errRoot == null) {
+                throwableNames = List.of();
+            } else {
+                throwableNames = new JsonSchemaErrorResolver().resolve(errRoot);
             }
 
             RpcType retType = resolver.resolveSchema(rezRoot);
             declarations.add(new JavaInterfaceMethodDeclaration(
-                    method, retType.getJavaTypeName(), inputTypes,
-                    errTypeName != null ? List.of(errTypeName) : List.of()));
+                    method, retType.getJavaTypeName(), inputTypes, throwableNames
+            ));
 
         }
 

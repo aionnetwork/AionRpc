@@ -12,6 +12,15 @@
         "data": {"type": "string"}
       }
 
+    },
+
+    "ImATeapot": {
+      "type": "object",
+      "properties": {
+        "code": { "const": 10002 } ,
+        "message": { "const": "I'm a teapot" },
+        "data": {"type": "string"}
+      }
     }
 
   }

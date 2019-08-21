@@ -1,6 +1,6 @@
-package org.aion.api.codegen;
+package org.aion.api.schema;
 
-class RpcError {
+public class RpcError {
     private final int code;
     private final String message;
 

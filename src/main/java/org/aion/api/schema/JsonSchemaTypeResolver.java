@@ -1,7 +1,6 @@
 package org.aion.api.schema;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import org.aion.api.serialization.RpcSchemaLoader;
 
@@ -22,7 +21,6 @@ import java.util.Map.Entry;
  * were needed at the time are implemented (feel free to extend).
  */
 public class JsonSchemaTypeResolver {
-    private final ObjectMapper om = new ObjectMapper();
     private final RpcSchemaLoader loader;
 
     /** Constructor */

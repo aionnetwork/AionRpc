@@ -1,16 +1,13 @@
 package org.aion.api.codegen;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.Resources;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
+import org.aion.api.schema.RpcError;
 
 import java.io.*;
-import java.net.URL;
 import java.nio.file.Files;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public class GenerateExceptions {

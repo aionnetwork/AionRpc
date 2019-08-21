@@ -7,10 +7,7 @@ import com.google.common.io.Resources;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateExceptionHandler;
 import freemarker.template.Version;
-import org.aion.api.schema.JsonSchemaTypeResolver;
-import org.aion.api.schema.NamedRpcType;
-import org.aion.api.schema.RootTypes;
-import org.aion.api.schema.RpcType;
+import org.aion.api.schema.*;
 
 import java.io.IOException;
 import java.net.URL;

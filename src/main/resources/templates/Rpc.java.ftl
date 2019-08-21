@@ -16,7 +16,7 @@ public interface Rpc {
         ${arg} var${arg_index}<#if (arg_has_next)>, </#if>
 </#list>    )
 <#list decl.exceptions>
-    throws <#items as ex>${ex}RpcException<#if (arg_has_next)??>, </#if></#items>
+    throws <#items as ex>${ex}RpcException<#if ex_has_next>, </#if></#items>
 </#list>
     ;
 

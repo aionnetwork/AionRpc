@@ -3,6 +3,7 @@ package org.aion.api.serialization;
 import static org.aion.api.serialization.SerializationUtils.bytesToHex;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -12,6 +13,7 @@ import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.math.BigInteger;
 
+import org.aion.api.RpcException;
 import org.aion.api.schema.JsonSchemaTypeResolver;
 import org.aion.api.schema.RootTypes;
 import org.aion.api.schema.RpcType;
@@ -42,6 +44,8 @@ public class ResponseSerializer {
         SimpleModule customSerializers = new SimpleModule();
         customSerializers.addSerializer(byte[].class, new BytesSerializer());
         customSerializers.addSerializer(BigInteger.class, new BigIntSerializer());
+        customSerializers.addSerializer(RpcException.class, new RpcExceptionSerializer());
+
         om.registerModule(customSerializers);
     }
 
@@ -56,9 +60,6 @@ public class ResponseSerializer {
      */
     public String serialize(JsonRpcResponse resp, String method)
     throws IOException, SchemaValidationException {
-        if(resp.getKind() == JsonRpcResponse.Kind.ERROR) {
-            return serializeError(resp);
-        }
 
         JsonNode responseSchema = schemaLoader.loadResponseSchema(method);
 
@@ -87,8 +88,6 @@ public class ResponseSerializer {
                         + "}",
                     resp.getJsonrpc(), resp.getId(), resultJson);
             } else {
-                // TODO not tested/used yet
-                // Custom types -- these are custom classes that will have Jackson annotations
                 return om.writeValueAsString(resp.getResult());
             }
 
@@ -117,13 +116,50 @@ public class ResponseSerializer {
                 + responseSchema.toString());
     }
 
-    private String serializeError(JsonRpcResponse resp) {
+    public String serializeError(JsonRpcError error) {
+        String errorJson;
+        try {
+            errorJson = om.writeValueAsString(error.getResult());
+        } catch (JsonProcessingException jpx) {
+            errorJson = String.format(
+                    "{\"code\": -32603, \"message\": \"Internal error\", \"data\": \"%s\"}",
+                    jpx.toString());
+        }
         return String.format("{"
-                + "\"jsonrpc\": \"%s\","
-                + "\"id\": \"%s\","
-                + "\"error\": %s"
-                + "}", resp.getJsonrpc(), resp.getId(), resp.getError()
-        );
+                    + "\"jsonrpc\": \"%s\","
+                    + "\"id\": \"%s\","
+                    + "\"error\": %s"
+                    + "}",
+                error.getJsonrpc(),
+                error.getId(),
+                errorJson);
+    }
+
+    private static class RpcExceptionSerializer extends StdSerializer<RpcException> {
+        public RpcExceptionSerializer() {
+            this(null);
+        }
+
+        public RpcExceptionSerializer(Class<RpcException> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(RpcException value,
+                              JsonGenerator gen,
+                              SerializerProvider provider)
+                throws IOException {
+            gen.writeStartObject();
+            gen.writeFieldName("code");
+            gen.writeNumber(value.getCode());
+            gen.writeFieldName("message");
+            gen.writeString(value.getMessage());
+            if(value.getData().isPresent()) {
+                gen.writeFieldName("data");
+                gen.writeString(value.getData().get());
+            }
+            gen.writeEndObject();
+        }
     }
 
     private static class BigIntSerializer extends StdSerializer<BigInteger> {

@@ -21,7 +21,14 @@
         "message": { "const": "I'm a teapot" },
         "data": {"type": "string"}
       }
+    },
+    "NullReturn": {
+      "type": "object",
+      "properties": {
+        "code": { "const": 10003 } ,
+        "message": { "const": "Null return" },
+        "data": {"type": "string"}
+      }
     }
-
   }
 }

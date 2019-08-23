@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "submits seed",
+  "definitions": {
+    "request": {
+      "type": "array",
+      "additionalItems": false,
+      "items": [
+        {
+          "$ref": "derived.json#/definitions/DATA64",
+          "description": "seed of block (n+1)"
+        },
+        {
+          "$ref": "derived.json#/definitions/DATA32",
+          "description": "signing public key of block (n+1)"
+        },
+        {
+          "$ref": "derived.json#/definitions/DATA32",
+          "description": "coinbase of block (n+1)"
+        }
+      ],
+      "examples": [
+      ]
+    },
+    "response": {
+      "description": "new staking block's pre-seal hash",
+      "type": "boolean",
+      "examples": []
+    },
+    "errors": {}
+  }
+}

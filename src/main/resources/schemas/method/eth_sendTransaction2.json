@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Prototype definition for illustrating AionRpc; don't use in production!",
+  "description": "Creates new message call transaction or a contract creation, if the data field contains code.<br /><br />This method requires that the account of the transaction sender be unlocked.",
+  "definitions": {
+
+    "request": {
+      "type": "array",
+      "additionalItems": false,
+      "items": [
+        {
+          "$ref": "derived.json#/definitions/CallRequest",
+          "description": "The transaction call object"
+        }
+      ],
+      "examples": []
+    },
+
+    "response": {
+      "$ref": "derived.json#/definitions/DATA32",
+      "description": "the transaction hash, or the zero hash if the transaction is not yet available.<br/><br/>Use eth_getTransactionReceipt to get hte contract address, after the transaction was mined, when you created a contract.",
+      "examples": []
+    },
+
+    "errors": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "eth_call error parameters",
+      "anyOf": [
+        {
+          "description": "If account sending the transaction is not unlocked",
+          "$ref": "errors.json#/definitions/Unauthorized"
+        },
+        {
+          "description": "If user asks for coffee but this is a teapot",
+          "$ref": "errors.json#/definitions/ImATeapot"
+        }
+      ]
+    }
+
+  }
+}

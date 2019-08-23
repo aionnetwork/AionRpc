@@ -3,8 +3,6 @@ package org.aion.api.serialization;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import org.aion.api.RpcException;
 import org.aion.api.schema.JsonSchemaRef;
 import org.aion.api.schema.JsonSchemaTypeResolver;
@@ -12,7 +10,6 @@ import org.aion.api.schema.SchemaValidationException;
 import org.junit.Test;
 
 import java.math.BigInteger;
-import java.net.URL;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
@@ -104,7 +101,7 @@ public class ResponseSerializerTest {
         JsonSchemaRef someStructTypeDef = new JsonSchemaRef(
                 "derived.json#/definitions/SomeStruct");
         doReturn(someStructJsonSchema).when(
-                schemaLoader).loadSchemaRef(someStructTypeDef);
+                schemaLoader).loadType(someStructTypeDef);
 
         ResponseSerializer unit = new ResponseSerializer(
                 new JsonSchemaTypeResolver(schemaLoader),

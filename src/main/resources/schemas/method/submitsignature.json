@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "submit the seal-hash and signature for sealing the new staking block",
+  "definitions": {
+    "request": {
+      "type": "array",
+      "additionalItems": false,
+      "items": [
+        {
+          "$ref": "derived.json#/definitions/DATA64",
+          "description": "signature of new staking block."
+        },
+        {
+          "$ref": "derived.json#/definitions/DATA32",
+          "description": "seal-hash of new staking block."
+        }
+      ],
+      "examples": [
+      ]
+    },
+    "response": {
+      "description": "whether submission succeeded",
+      "type": "boolean",
+      "examples": []
+    },
+    "errors": {}
+  }
+}

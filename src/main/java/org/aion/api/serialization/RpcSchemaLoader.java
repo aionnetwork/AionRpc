@@ -12,27 +12,42 @@ import java.io.IOException;
 import java.net.URL;
 
 /**
- * Loads files containing RPC-related definitions -- RPC method request/response
- * schemas and Aion RPC type schemas.
+ * Responsible for loading JsonSchema files for methods and types
  */
 public class RpcSchemaLoader {
     private ObjectMapper om = new ObjectMapper();
 
-    /** Load schema for RPC method request */
-    public JsonNode loadRequestSchema(String methodName) throws IOException {
-        return SerializationUtils.loadSchemaRef(
-            om, "schemas/" + methodName + ".request.json");
+    // -- Load method -------------------------------------------------------------------
+    public MethodDescriptor loadMethod(String methodName) throws IOException {
+        JsonNode method = SerializationUtils.loadSchemaRef(
+                om, "schemas/method/" + methodName + ".json");
+        JsonNode req = method.get("definitions").get("request");
+        JsonNode resp = method.get("definitions").get("response");
+        JsonNode err = method.get("definitions").get("errors");
+        String description = method.get("description").asText();
+        return new MethodDescriptor(methodName, req, resp, err, description);
     }
 
-    /** Load schema for RPC method response */
-    public JsonNode loadResponseSchema(String methodName) throws IOException {
-        return SerializationUtils.loadSchemaRef(
-            om, "schemas/" + methodName + ".response.json");
+    public JsonNode loadRequestSchema(String methodName) throws IOException {
+        return loadMethod(methodName).getRequest();
     }
+
+    public JsonNode loadResponseSchema(String methodName) throws IOException {
+        return loadMethod(methodName).getResponse();
+    }
+
+    public JsonNode loadErrorSchema(String methodName) throws IOException {
+        return loadMethod(methodName).getError();
+    }
+
+    public String loadMethodDescription(String methodName) throws IOException {
+        return loadMethod(methodName).getDescription();
+    }
+
+    // -- Load types --------------------------------------------------------------------
 
     /** Load schema for Aion RPC type */
-    public JsonNode loadSchemaRef(JsonSchemaRef ref)
-    throws IOException {
+    public JsonNode loadType(JsonSchemaRef ref) throws IOException {
         URL url = RpcSchemaLoader.class.getClassLoader().getResource("schemas/type/" + ref.getFile());
         String schemaTxt = Resources.toString(url, Charsets.UTF_8);
         JsonPointer ptr = JsonPointer.compile(ref.getFragment());

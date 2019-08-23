@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Prototype definition for illustrating AionRpc; don't use in production!",
+
+  "description": "Returns the information about a transaction requested by transaction hash.",
+  "definitions": {
+    "request": {
+      "type": "array",
+      "additionalItems": false,
+      "items": [
+        {
+          "$ref": "derived.json#/definitions/DATA32",
+          "description": "hash of a transaction"
+        }
+      ],
+      "examples": [
+        {
+          "method": "eth_getTransactionByHash",
+          "params": [
+            "0xfafcae97932003ef1b6a896d51c47b2abb88d97339861dc803d21424dfe0402b"
+          ],
+          "id": "1",
+          "jsonrpc": "2.0"
+        }
+      ]
+    },
+    "response": {
+      "description": "A transaction object, or null if no transaction was found",
+      "$ref": "derived.json#/definitions/Transaction",
+      "examples": [
+        {
+          "result": {
+            "blockHash": "0x49dc23204e4b0afcc0c43461777d13b67fbb77979d98c7f637adfed9086fb465",
+            "blockNumber": "0x6d39e",
+            "from": "0xa06a3535aeaa8f15adbaca345ad33768496597dd98a9be95c0532b27cacd14d9",
+            "nrg": "0x7a120",
+            "nrgPrice": "0x2540be400",
+            "gas": "0x7a120",
+            "gasPrice": "0x2540be400",
+            "hash": "0xfafcae97932003ef1b6a896d51c47b2abb88d97339861dc803d21424dfe0402b",
+            "input": "0x",
+            "nonce": "0x1c2b",
+            "to": "0xa0a6efc1029bf24d80779872781ed6efd993124e6370c04998b29f7730b8eae5",
+            "transactionIndex": "0x6",
+            "value": "0xd4e0885c33cf3a",
+            "timestamp": "0x5b2634f8"
+          },
+          "id": "1",
+          "jsonrpc": "2.0"
+        }
+      ]
+    },
+
+    "errors": {}
+  }
+}

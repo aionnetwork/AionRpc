@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Prototype definition for illustrating AionRpc; don't use in production!",
+  "description": "Gets seed",
+  "definitions": {
+    "request": {
+      "type": "array",
+      "additionalItems": false,
+      "items": [],
+      "examples": []
+    },
+    "response": {
+      "description": "seed",
+      "$ref": "derived.json#/definitions/DATA64",
+      "examples": []
+    },
+
+    "errors": {}
+
+  }
+}

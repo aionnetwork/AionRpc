@@ -23,6 +23,8 @@ import org.aion.api.schema.JsonSchemaTypeResolver;
 import org.aion.api.schema.RpcType;
 import org.aion.api.schema.SchemaException;
 import org.aion.api.schema.TypeRegistry;
+import org.aion.api.serialization.MethodDescriptor;
+import org.aion.api.serialization.RpcSchemaLoader;
 
 public class GenerateRpcProcessor {
 
@@ -35,43 +37,28 @@ public class GenerateRpcProcessor {
     public GenerateRpcProcessor() { }
 
     public void generateRpcProcessor2() throws IOException, TemplateException {
-        ObjectMapper mapper = new ObjectMapper();
-
-        // Get JsonSchema stuff
         JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
-
         Configuration freemarker = CodeGenUtils.configureFreemarker();
 
-        List<String> methods = CodeGenUtils.loadMethodList();
         List<JavaMethodCall> javaMethodCalls = new LinkedList<>();
-
-        Map<String, Object> ftlMap = new HashMap<>();
+        List<String> methods = CodeGenUtils.loadMethodList();
 
         for(String method: methods) {
-            URL reqUrl = Resources.getResource("schemas/" + method + ".request.json");
-            URL rezUrl = Resources.getResource("schemas/" + method + ".response.json");
-            String req = Resources.toString(reqUrl, Charsets.UTF_8);
-            String rez = Resources.toString(rezUrl, Charsets.UTF_8);
-            JsonNode reqRoot = new ObjectMapper().readTree(req);
-            JsonNode rezRoot = new ObjectMapper().readTree(rez);
-
-            List<String> paramTypes = resolveParamTypes(
-                reqRoot, resolver);
-            RpcType retType = resolver.resolveSchema(rezRoot);
-
-            //TODO Asuming no multi-value types for now.
-            javaMethodCalls.add(new JavaMethodCall(paramTypes, retType.getJavaTypeName(), method));
+            MethodDescriptor md = new RpcSchemaLoader().loadMethod(method);
+            List<String> paramTypes = resolveParamTypes(md.getRequest(), resolver);
+            RpcType retType = resolver.resolveSchema(md.getResponse());
+            javaMethodCalls.add(new JavaMethodCall(
+                    paramTypes, retType.getJavaTypeName(), method));
         }
 
-
-        ftlMap.put("javaMethodCalls", javaMethodCalls);
-
+        Map<String, Object> ftlMap = Map.of("javaMethodCalls", javaMethodCalls);
         Writer consoleWriter = new OutputStreamWriter(System.out);
-        freemarker.getTemplate("RpcProcessor2.java.ftl").process(ftlMap, consoleWriter);
+        freemarker.getTemplate("RpcProcessor2.java.ftl")
+                .process(ftlMap, consoleWriter);
     }
 
     private List<String> resolveParamTypes(JsonNode requestSchema,
-                                          JsonSchemaTypeResolver resolver) {
+                                           JsonSchemaTypeResolver resolver) {
         // process each parameter in the param list using the JsonSchemaTypeResolver.
         // the top-level schema for the request itself can't use the resolver though,
         // because of its restriction on arrays.  so, handle the array manually.
@@ -85,7 +72,7 @@ public class GenerateRpcProcessor {
         for(Iterator<JsonNode> it = items.elements(); it.hasNext(); ) {
             JsonNode param = it.next();
             RpcType t = resolver.resolveSchema(param);
-            paramTypes.add(t.getJavaTypeName()); // TODO Assuming no multi-value types for now.
+            paramTypes.add(t.getJavaTypeName()); //
         }
 
         return paramTypes;

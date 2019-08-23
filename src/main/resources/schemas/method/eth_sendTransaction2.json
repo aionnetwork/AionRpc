@@ -18,7 +18,7 @@
 
     "response": {
       "$ref": "derived.json#/definitions/DATA32",
-      "description": "the transaction hash, or the zero hash if the transaction is not yet available.<br/><br/>Use eth_getTransactionReceipt to get hte contract address, after the transaction was mined, when you created a contract.",
+      "description": "the transaction hash, or the zero hash if the transaction is not yet available.<br/><br/>Use eth_getTransactionReceipt to get the contract address, after the transaction was mined, when you created a contract.",
       "examples": []
     },
 

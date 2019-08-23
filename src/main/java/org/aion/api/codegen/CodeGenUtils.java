@@ -33,7 +33,7 @@ public class CodeGenUtils {
     }
 
     static List<NamedRpcType> retrieveObjectDerivedRpcTypes(ObjectMapper om,
-                                                             JsonSchemaTypeResolver resolver)
+                                                            JsonSchemaTypeResolver resolver)
     throws IOException {
         // as per AionRpc convention, all non-root types live in
         // the resource schemas/type/derived.json.

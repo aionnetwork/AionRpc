@@ -1,16 +1,16 @@
 package org.aion.api.schema;
 
 public class ErrorUsage {
-    private final String errorName;
+    private final RpcError error;
     private final String reason;
 
-    public ErrorUsage(String errorName, String reason) {
-        this.errorName = errorName;
+    public ErrorUsage(RpcError errorName, String reason) {
+        this.error = errorName;
         this.reason = reason;
     }
 
-    public String getErrorName() {
-        return errorName;
+    public RpcError getError() {
+        return error;
     }
 
     public String getReason() {

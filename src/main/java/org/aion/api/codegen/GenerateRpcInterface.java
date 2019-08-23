@@ -51,7 +51,7 @@ public class GenerateRpcInterface {
             } else {
                 throwableNames = errorResolver.resolve(md.getError())
                         .stream()
-                        .map(e -> e.getErrorName())
+                        .map(e -> e.getError().getName())
                         .collect(Collectors.toList());
             }
 

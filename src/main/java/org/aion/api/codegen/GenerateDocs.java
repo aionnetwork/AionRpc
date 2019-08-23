@@ -39,7 +39,7 @@ public class GenerateDocs {
                     buildParameters(md.getRequest(), resolver),
                     buildReturns(md.getResponse(), resolver),
                     buildExample(md.getRequest(), md.getResponse()),
-                    buildErrors(md.getError(), errorResolver, errors)
+                    errorResolver.resolve(md.getError())
             );
             methods.add(m);
         }
@@ -55,23 +55,13 @@ public class GenerateDocs {
     }
 
 
-    private List<Error> buildErrors(JsonNode schema,
-                                    JsonSchemaErrorResolver errorResolver,
-                                    Map<String, RpcError> errors) {
+    private List<ErrorUsage> buildErrors(JsonNode schema,
+                                         JsonSchemaErrorResolver errorResolver,
+                                         Map<String, RpcError> errors) {
         if(schema.size() == 0) {
             return List.of();
         }
-
-        List<ErrorUsage> errorUsages = errorResolver.resolve(schema);
-        return errorUsages
-                .stream()
-                .map(e -> new Error(
-                        new RpcError(e.getErrorName(),
-                            errors.get(e.getErrorName()).getCode(),
-                            errors.get(e.getErrorName()).getMessage()
-                            ),
-                        e.getReason())
-                ).collect(Collectors.toList());
+        return errorResolver.resolve(schema);
     }
 
     private Example buildExample(JsonNode reqSchema,
@@ -129,14 +119,14 @@ public class GenerateDocs {
         private final List<TypeInfo> parameters;
         private final TypeInfo returns;
         private final Example example;
-        private final List<Error> errors;
+        private final List<ErrorUsage> errors;
 
         public Method(String name,
                       String description,
                       List<TypeInfo> parameters,
                       TypeInfo returns,
                       Example example,
-                      List<Error> errors) {
+                      List<ErrorUsage> errors) {
             this.name = name;
             this.description = description;
             this.parameters = parameters;
@@ -165,7 +155,7 @@ public class GenerateDocs {
             return example;
         }
 
-        public List<Error> getErrors() {
+        public List<ErrorUsage> getErrors() {
             return errors;
         }
     }
@@ -302,23 +292,4 @@ public class GenerateDocs {
             return response;
         }
     }
-
-    public static class Error {
-        private final RpcError error;
-        private final String reason;
-
-        public Error(RpcError error, String reason) {
-            this.error = error;
-            this.reason = reason;
-        }
-
-        public RpcError getError() {
-            return error;
-        }
-
-        public String getReason() {
-            return reason;
-        }
-    }
-
 }

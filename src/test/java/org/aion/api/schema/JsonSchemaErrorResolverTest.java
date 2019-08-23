@@ -17,9 +17,9 @@ public class JsonSchemaErrorResolverTest {
         JsonNode input = new ObjectMapper().readTree(
                 "{\"$ref\": \"errors.json#/definitions/Unauthorized\"}"
         );
-        List<String> result = unit.resolve(input).stream().map(e->e.getErrorName()).collect(Collectors.toList());
+        List<ErrorUsage> result = unit.resolve(input);
         assertThat(result.size(), is(1));
-        assertThat(result.get(0), is("Unauthorized"));
+        assertThat(result.get(0).getError().getName(), is("Unauthorized"));
     }
 
     @Test
@@ -34,7 +34,7 @@ public class JsonSchemaErrorResolverTest {
         List<ErrorUsage> result = unit.resolve(input);
         List<String> names = result
                 .stream()
-                .map(e -> e.getErrorName())
+                .map(e -> e.getError().getName())
                 .collect(Collectors.toList());
         assertThat(names.contains("Unauthorized"), is(true));
         assertThat(names.contains("ImATeapot"), is(true));

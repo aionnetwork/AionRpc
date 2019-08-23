@@ -1,22 +1,19 @@
 package org.aion.api.codegen;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Charsets;
-import com.google.common.collect.Sets;
-import com.google.common.io.Resources;
 import freemarker.template.Configuration;
-import freemarker.template.TemplateExceptionHandler;
-import freemarker.template.Version;
-import org.aion.api.schema.*;
+import org.aion.api.schema.JsonSchemaErrorResolver;
+import org.aion.api.schema.JsonSchemaFixedMixedArrayResolver;
+import org.aion.api.schema.JsonSchemaTypeResolver;
+import org.aion.api.schema.RpcType;
 import org.aion.api.serialization.MethodDescriptor;
 import org.aion.api.serialization.RpcSchemaLoader;
 
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.URL;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GenerateRpcInterface {
@@ -32,13 +29,13 @@ public class GenerateRpcInterface {
         List<String> methods = CodeGenUtils.loadMethodList();
         List<JavaInterfaceMethodDeclaration> declarations = new LinkedList<>();
 
+        JsonSchemaErrorResolver errorResolver = new JsonSchemaErrorResolver();
+        JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
+        JsonSchemaFixedMixedArrayResolver arrayResolver =
+                new JsonSchemaFixedMixedArrayResolver();
+
         for(String method: methods) {
             MethodDescriptor md = new RpcSchemaLoader().loadMethod(method);
-
-            // Resolve types
-            JsonSchemaTypeResolver resolver = new JsonSchemaTypeResolver();
-            JsonSchemaFixedMixedArrayResolver arrayResolver =
-                    new JsonSchemaFixedMixedArrayResolver();
 
             // Parameter types to method signatures
             List<String> inputTypes = arrayResolver
@@ -52,7 +49,7 @@ public class GenerateRpcInterface {
             if(md.getError().size() == 0) {
                 throwableNames = List.of();
             } else {
-                throwableNames = new JsonSchemaErrorResolver().resolve(md.getError())
+                throwableNames = errorResolver.resolve(md.getError())
                         .stream()
                         .map(e -> e.getErrorName())
                         .collect(Collectors.toList());
@@ -74,4 +71,36 @@ public class GenerateRpcInterface {
         freemarker.getTemplate("Rpc.java.ftl").process(ftlMap, consoleWriter);
     }
 
+    public class JavaInterfaceMethodDeclaration {
+        private final String methodName;
+        private final String returnType;
+        private final List<String> args;
+        private final List<String> exceptions;
+
+        public JavaInterfaceMethodDeclaration(String methodName,
+                                              String returnType,
+                                              List<String> args,
+                                              List<String> exceptions) {
+            this.methodName = methodName;
+            this.returnType = returnType;
+            this.args = args;
+            this.exceptions = exceptions;
+        }
+
+        public String getMethodName() {
+            return methodName;
+        }
+
+        public String getReturnType() {
+            return returnType;
+        }
+
+        public List<String> getArgs() {
+            return args;
+        }
+
+        public List<String> getExceptions() {
+            return exceptions;
+        }
+    }
 }

@@ -16,8 +16,9 @@
 
     "ImATeapot": {
       "type": "object",
+      "$comment": "This error is for test purposes.",
       "properties": {
-        "code": { "const": 10002 } ,
+        "code": { "const": 10418 } ,
         "message": { "const": "I'm a teapot" },
         "data": {"type": "string"}
       }

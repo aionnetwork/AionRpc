@@ -240,14 +240,14 @@ public class GenerateDocs {
         private final List<TypeInfo> additionalObjectDefinitions;
 
         private TypeInfo(NamedRpcType type, String description) {
-            String rootTypeName = type.getRootType().getName();
+            String rootTypeName = ((NamedRpcType)type.getRootType()).getName();
             if(FORMATTED_ROOT_TYPE_NAMES.containsKey(rootTypeName)) {
                 this.baseTypeName = FORMATTED_ROOT_TYPE_NAMES.get(rootTypeName);
             } else {
                 this.baseTypeName = rootTypeName;
             }
 
-            NamedRpcType rootType = type.getRootType();
+            NamedRpcType rootType = (NamedRpcType) type.getRootType();
             String maybeTypeDetail = null;
             if(rootType.equals(RootTypes.DATA)
                 || rootType.equals(RootTypes.QUANTITY)) {

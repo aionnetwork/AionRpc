@@ -31,9 +31,12 @@ public class JsonSchemaErrorResolverTest {
                 "    {\"$ref\": \"errors.json#/definitions/ImATeapot\"}" +
                 "  ]}"
         );
-        List<String> result = unit.resolve(input).stream().map(e->e.getErrorName()).collect(Collectors.toList());
-        assertThat(result.size(), is(2));
-        assertThat(result.contains("Unauthorized"), is(true));
-        assertThat(result.contains("ImATeapot"), is(true));
+        List<ErrorUsage> result = unit.resolve(input);
+        List<String> names = result
+                .stream()
+                .map(e -> e.getErrorName())
+                .collect(Collectors.toList());
+        assertThat(names.contains("Unauthorized"), is(true));
+        assertThat(names.contains("ImATeapot"), is(true));
     }
 }

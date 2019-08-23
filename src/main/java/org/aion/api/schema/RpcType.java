@@ -89,18 +89,18 @@ public class RpcType {
         return containedFields;
     }
 
-    public NamedRpcType getRootType() {
+    public RpcType getRootType() {
         // all root types are named, so we'll just blindly cast it to NamedRpcType
 
         if(isRootType()) {
-            return (NamedRpcType)this;
+            return this;
         }
 
         RpcType parent = getBaseType();
         while(parent.getBaseType() != null) {
             parent = parent.getBaseType();
         }
-        return (NamedRpcType)parent;
+        return parent;
     }
 
     public boolean isRootType() {

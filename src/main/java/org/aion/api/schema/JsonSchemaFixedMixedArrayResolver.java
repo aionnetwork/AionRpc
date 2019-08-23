@@ -10,7 +10,7 @@ import java.util.List;
  * Similar to {@link JsonSchemaTypeResolver}, but specialized for a specific purpose:
  * resolving the types for an array whose schema defines it as fixed-size with different
  * types each each element.  The normal {@link JsonSchemaTypeResolver} does not allow
- * for arrays to contain elements on one type.
+ * for arrays to contain elements more than one type.
  */
 public class JsonSchemaFixedMixedArrayResolver {
 

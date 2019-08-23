@@ -205,7 +205,7 @@ public class GenerateDocs {
                 this.baseTypeName = rootTypeName;
             }
 
-            NamedRpcType rootType = (NamedRpcType) type.getRootType();
+            RpcType rootType = type.getRootType();
             String maybeTypeDetail = null;
             if(rootType.equals(RootTypes.DATA)
                 || rootType.equals(RootTypes.QUANTITY)) {
@@ -219,13 +219,14 @@ public class GenerateDocs {
             } else if (type.getRootType().equals(RootTypes.OBJECT)) {
                 maybeTypeDetail = type.getName();
             }
+
             this.typeDetail = maybeTypeDetail;
             this.description = description;
 
             this.containedFields = new LinkedList<>();
             this.additionalObjectDefinitions = new LinkedList<>();
             for(Field cf : type.getContainedFields()) {
-                NamedRpcType rt = (NamedRpcType)cf.getType();
+                NamedRpcType rt = cf.getType();
 //                additionalObjectDefinitions.addAll(findNestedObjects(rt));
 
                 String fieldDescription = null;

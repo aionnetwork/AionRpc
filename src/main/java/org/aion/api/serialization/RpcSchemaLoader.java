@@ -15,6 +15,15 @@ import java.net.URL;
  * Responsible for loading JsonSchema files for methods and types
  */
 public class RpcSchemaLoader {
+    // Implementation note: eventually we should make a subclass of this
+    // where the JsonSchema of methods and types are cached in memory, so
+    // calling RPC methods in the kernel doesn't require repeatedly loading
+    // files.
+    //
+    // Either an LRU cache or just a straight up map of pre-determined commonly
+    // used methods/types will do.  Invalidation of the cache will be trivial
+    // because the definitions don't change during the lifetime of the kernel.
+
     private ObjectMapper om = new ObjectMapper();
 
     // -- Load method -------------------------------------------------------------------

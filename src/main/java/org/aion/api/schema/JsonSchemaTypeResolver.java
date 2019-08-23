@@ -196,8 +196,15 @@ public class JsonSchemaTypeResolver {
         for(Iterator<Entry<String, JsonNode>> iter = props.fields(); iter.hasNext(); ) {
             Map.Entry<String, JsonNode> prop = iter.next();
             JsonNode propDefinition = prop.getValue();
+            if(propDefinition.has("type")
+                    && propDefinition.get("type").asText().equals("object")) {
+                throw new SchemaRestrictionException(
+                        "Not allowed to nest an object inside the properties of another " +
+                                "object.  Instead, define the inner object as a derived type" +
+                                "and then use a $ref to point to it.");
+            }
             fields.add(new Field(prop.getKey(),
-                resolveSchema(propDefinition), propDefinition));
+                resolveNamedSchema(propDefinition), propDefinition));
         }
 
         return new RpcType(

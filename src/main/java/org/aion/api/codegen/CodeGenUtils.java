@@ -29,10 +29,7 @@ public class CodeGenUtils {
         URL methodsUrl = Resources.getResource("methods.txt");
         String methods = Resources.toString(methodsUrl, Charsets.UTF_8);
         String[] methodList = methods.split("\n");
-        return Arrays.asList(methodList).stream()
-                // the method name is the first word on each line
-                .map(line -> line.split(" ")[0])
-                .collect(Collectors.toList());
+        return Arrays.asList(methodList);
     }
 
     static List<NamedRpcType> retrieveObjectDerivedRpcTypes(ObjectMapper om,

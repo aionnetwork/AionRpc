@@ -6,10 +6,10 @@ import java.util.Objects;
 
 public class Field {
     private final String name;
-    private final RpcType type;
+    private final NamedRpcType type;
     private final JsonNode definition;
 
-    public Field(String name, RpcType type, JsonNode definition) {
+    public Field(String name, NamedRpcType type, JsonNode definition) {
         this.name = name;
         this.type = type;
         this.definition = definition;
@@ -19,7 +19,7 @@ public class Field {
         return name;
     }
 
-    public RpcType getType() {
+    public NamedRpcType getType() {
         return type;
     }
 

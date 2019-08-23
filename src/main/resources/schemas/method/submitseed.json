@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+
+  "description": "Submit new seed for getting the new staking block pre-seal hash",
+  "definitions": {
+    "request": {
+      "title": "submitseed request parameters",
+      "type": "array",
+      "additionalItems": false,
+      "items": [
+        {
+          "$ref": "derived.json#/definitions/DATA64",
+          "description": "seed of block (n+1)."
+        },
+        {
+          "$ref": "derived.json#/definitions/DATA32",
+          "$comment": "Should create a DATA64 and use that instead, but RPC generator doesn't support it yet.",
+          "description": "public key of submitter."
+        }
+      ],
+
+      "examples": [
+      ]
+    },
+    "response": {
+      "description": "new staking block pre-seal hash retun by the DATA type",
+      "$ref": "derived.json#/definitions/DATA32",
+      "examples": [
+      ]
+    },
+    "errors": {}
+  }
+}

@@ -1,6 +1,5 @@
 package org.aion.api.serialization;
 
-import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -10,8 +9,6 @@ import java.math.BigInteger;
 import org.aion.api.RpcException;
 import org.aion.api.codegen.GenerateDeserializer;
 import org.aion.api.schema.*;
-import org.json.JSONPointer;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.core.Is.is;
@@ -152,7 +149,7 @@ public class RequestDeserializerTest {
         JsonSchemaRef someStructTypeDef = new JsonSchemaRef(
                 "derived.json#/definitions/SomeStruct");
         doReturn(someStructJsonSchema).when(
-                schemaLoader).loadSchemaRef(someStructTypeDef);
+                schemaLoader).loadType(someStructTypeDef);
 
         String payload = "{                                                                                                                                                                                                                   \n" +
                 "  \"method\": \"testMethod\",\n" +
@@ -203,7 +200,7 @@ public class RequestDeserializerTest {
         JsonSchemaRef someStructTypeDef = new JsonSchemaRef(
                 "derived.json#/definitions/SomeStruct");
         doReturn(someStructJsonSchema).when(
-                schemaLoader).loadSchemaRef(someStructTypeDef);
+                schemaLoader).loadType(someStructTypeDef);
 
         String payload = "{                                                                                                                                                                                                                   \n" +
                 "  \"method\": \"testMethod\",\n" +

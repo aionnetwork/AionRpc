@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Submit new seed for getting the new staking block pre-seal hash",
+  "definitions": {
+    "request": {
+      "type": "array",
+      "additionalItems": false,
+      "items": [
+        {
+          "$ref": "derived.json#/definitions/DATA64",
+          "description": "seed of block (n+1)"
+        },
+        {
+          "$ref": "derived.json#/definitions/DATA32",
+          "description": "signing public key of block (n+1)"
+        },
+        {
+          "$ref": "derived.json#/definitions/DATA32",
+          "description": "coinbase of block (n+1)"
+        }
+      ],
+      "examples": [
+      ]
+    },
+    "response": {
+      "$ref": "derived.json#/definitions/DATA32",
+      "description": "new staking block pre-seal hash",
+      "examples": [
+      ]
+    },
+    "errors": {}
+  }
+}

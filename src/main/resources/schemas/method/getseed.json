@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Prototype definition for illustrating AionRpc; don't use in production!",
+  "description": "Creates new message call transaction or a contract creation, if the data field contains code.<br /><br />This method requires that the account of the transaction sender be unlocked.",
+  "definitions": {
+    "request": {
+      "title": "getseed request parameters",
+      "description": "",
+      "type": "array",
+      "additionalItems": false,
+      "items": [],
+      "examples": []
+    },
+    "response": {
+      "description": "seed",
+      "$ref": "derived.json#/definitions/DATA64",
+      "examples": []
+    },
+
+    "errors": {}
+
+  }
+}

@@ -23,7 +23,7 @@ public class RootTypes {
         try {
             DATA = new NamedRpcType(
                 "DATA",
-                loader.loadSchemaRef(
+                loader.loadType(
                         new JsonSchemaRef("root.json#/definitions/DATA")),
                 null,
                 null,
@@ -32,7 +32,7 @@ public class RootTypes {
             );
             QUANTITY = new NamedRpcType(
                 "QUANTITY",
-                loader.loadSchemaRef(
+                loader.loadType(
                         new JsonSchemaRef("root.json#/definitions/QUANTITY")),
                 null,
                 null,
@@ -41,7 +41,7 @@ public class RootTypes {
             );
             BOOLEAN = new NamedRpcType(
                 "BOOLEAN",
-                loader.loadSchemaRef(
+                loader.loadType(
                         new JsonSchemaRef("root.json#/definitions/BOOLEAN")),
                 null,
                 null,
@@ -50,7 +50,7 @@ public class RootTypes {
             );
             OBJECT = new NamedRpcType(
                 "OBJECT",
-                loader.loadSchemaRef(
+                loader.loadType(
                         new JsonSchemaRef("root.json#/definitions/OBJECT")),
                 null,
                 null,

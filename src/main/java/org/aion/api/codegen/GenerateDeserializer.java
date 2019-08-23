@@ -1,30 +1,13 @@
 package org.aion.api.codegen;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import freemarker.template.Configuration;
-import freemarker.template.TemplateExceptionHandler;
-import freemarker.template.Version;
-import java.io.IOException;
+import org.aion.api.schema.JsonSchemaTypeResolver;
+
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.URL;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-import org.aion.api.schema.JsonSchemaFixedMixedArrayResolver;
-import org.aion.api.schema.JsonSchemaTypeResolver;
-import org.aion.api.schema.NamedRpcType;
-import org.aion.api.schema.RootTypes;
-import org.aion.api.schema.RpcType;
-import org.aion.api.schema.TypeRegistry;
 
 public class GenerateDeserializer {
     private final ObjectMapper om;

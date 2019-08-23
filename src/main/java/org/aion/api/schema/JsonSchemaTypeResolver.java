@@ -135,7 +135,7 @@ public class JsonSchemaTypeResolver {
 
         JsonNode definition;
         try {
-            definition = loader.loadSchemaRef(ref);
+            definition = loader.loadType(ref);
         } catch (IOException ioe) {
             throw new SchemaException(String.format(
                     "Failed to load schema file '%s' when dereferencing pointer '%s'",

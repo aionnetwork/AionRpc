@@ -3,15 +3,13 @@ package org.aion.api.codegen;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import freemarker.template.Configuration;
 import org.aion.api.schema.*;
+import org.aion.api.serialization.MethodDescriptor;
+import org.aion.api.serialization.RpcSchemaLoader;
 
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,33 +31,15 @@ public class GenerateDocs {
         Map<String, RpcError> errors = CodeGenUtils.retrieveErrorDefinitions(om);
 
         List<Method> methods = new LinkedList<>();
-        for(Map.Entry<String, String> md : getMethodsAndDescriptions().entrySet()) {
-            String method = md.getKey();
-            String description = md.getValue();
-
-            URL reqUrl = Resources.getResource("schemas/" + method + ".request.json");
-            URL rezUrl = Resources.getResource("schemas/" + method + ".response.json");
-            URL errUrl;
-            try {
-                // because errors not mandatory
-                errUrl = Resources.getResource("schemas/" + method + ".error.json");
-            } catch (IllegalArgumentException iax) {
-                errUrl = null;
-            }
-            String req = Resources.toString(reqUrl, Charsets.UTF_8);
-            String rez = Resources.toString(rezUrl, Charsets.UTF_8);
-            String err = errUrl != null ? Resources.toString(errUrl, Charsets.UTF_8) : null;
-            JsonNode reqRoot = new ObjectMapper().readTree(req);
-            JsonNode rezRoot = new ObjectMapper().readTree(rez);
-            JsonNode errRoot = err != null ? new ObjectMapper().readTree(err) : null;
-
+        for(String method: CodeGenUtils.loadMethodList()) {
+            MethodDescriptor md = new RpcSchemaLoader().loadMethod(method);
             Method m = new Method(
                     method,
-                    description,
-                    buildParameters(reqRoot, resolver),
-                    buildReturns(rezRoot, resolver),
-                    buildExample(reqRoot, rezRoot),
-                    buildErrors(errRoot, errorResolver, errors)
+                    md.getDescription(),
+                    buildParameters(md.getRequest(), resolver),
+                    buildReturns(md.getResponse(), resolver),
+                    buildExample(md.getRequest(), md.getResponse()),
+                    buildErrors(md.getError(), errorResolver, errors)
             );
             methods.add(m);
         }
@@ -76,14 +56,13 @@ public class GenerateDocs {
 
 
     private List<Error> buildErrors(JsonNode schema,
-                                      JsonSchemaErrorResolver errorResolver,
-                                      Map<String, RpcError> errors) {
-        if(schema == null) {
+                                    JsonSchemaErrorResolver errorResolver,
+                                    Map<String, RpcError> errors) {
+        if(schema.size() == 0) {
             return List.of();
         }
 
         List<ErrorUsage> errorUsages = errorResolver.resolve(schema);
-
         return errorUsages
                 .stream()
                 .map(e -> new Error(
@@ -142,27 +121,6 @@ public class GenerateDocs {
             parameters.add(new TypeInfo(type, description));
         }
         return parameters;
-    }
-
-    private Map<String, String> getMethodsAndDescriptions() throws IOException {
-        URL methodsUrl = Resources.getResource("methods.txt");
-        String methods = Resources.toString(methodsUrl, Charsets.UTF_8);
-        String[] methodList = methods.split("\n");
-        return Arrays.asList(methodList)
-                .stream()
-                .map(line -> splitMethodLine(line))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    private Map.Entry<String, String> splitMethodLine(String line) {
-        String[] pieces = line.split(" ");
-        if(pieces.length == 1) {
-            return new AbstractMap.SimpleEntry<>(pieces[0], "");
-        } else {
-            String method = pieces[0];
-            String description = line.replaceFirst(method + " ", "");
-            return new AbstractMap.SimpleEntry<>(method, description);
-        }
     }
 
     public static class Method {

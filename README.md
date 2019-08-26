@@ -1,33 +1,29 @@
 ## Guide
 ### Where to start?
-A good place to start is to look at the existing schemas and how they are used.  If you are adding a new method with parameters and return types similar to an existing method, you can probably deduce what you need by just looking at the examples.  You can play with the schemas and run the code generators to get an intuition of how it works.  For an in-depth explanation of the system, see [Framework](#Framework) section.
+A good place to start is to look at the existing schemata and how they are used.  If you are adding a new method with parameters and return types similar to an existing method, you can probably deduce what you need by just looking at the examples.  You can play with the schemata and run the code generators to get an intuition of how it works.  For an in-depth explanation of the system, see [Framework](#Framework) section.
 
-##### Repository organization
-- Schemas for request and response of RPC methods: https://github.com/aionnetwork/AionRpc/tree/master/src/main/resources/schemas
+##### Schema organization
 - Method list for RPC layer: https://github.com/aionnetwork/AionRpc/blob/master/src/main/resources/methods.txt
-- User-defined custom types for RPC layer: https://github.com/aionnetwork/AionRpc/blob/master/src/main/resources/schemas/type/derived.json
-- Templates for generated Java code: https://github.com/aionnetwork/AionRpc/tree/master/src/main/resources/templates
+- Method request/response/error schemata: https://github.com/aionnetwork/AionRpc/tree/master/src/main/resources/schemas/method
+- Types schemata:
+  - User-defined types: https://github.com/aionnetwork/AionRpc/blob/master/src/main/resources/schemas/type/derived.json
+  - Root (built-in) types: https://github.com/aionnetwork/AionRpc/blob/master/src/main/resources/schemas/type/root.json
+- Errors schemata: https://github.com/aionnetwork/AionRpc/blob/master/src/main/resources/schemas/type/errors.json
+- FreeMarker templates (for doc/code generation): https://github.com/aionnetwork/AionRpc/tree/master/src/main/resources/templates 
 
-##### Running the code generators
-- To generate Rpc.java: `./gradlew genRpcInterface`
-- To generate RpcProcessor.java: `./gradlew genRpcProcessor`
-- To generate both files: `./gradlew generateAll`
+##### Generate code/docs from schemata
 
-##### Integration
-Integration into the Aion Java kernel is very minimal right now and mostly done manually.  After generating the `Rpc.java` and `RpcProcessor.java` files, you must manually paste them into the kernel.  The file locations are:
-- https://github.com/aionnetwork/aion/blob/rpc-autogen/modApiServer/src/org/aion/api/server/rpc2/autogen/Rpc.java
-- https://github.com/aionnetwork/aion/blob/rpc-autogen/modApiServer/src/org/aion/api/server/rpc2/autogen/RpcProcessor2.java
+- To generate Java code:
+  - Generate all files to a specific location: `./gradlew generateJava -PkernelRoot=/path/to/your/aionkernel`
+  - You can also omit the -P argument, which will just print the contents of all files to stdout
+- To generate RPC documentation (markdown):
+  - Generate to a specific location: `./gradlew generateJava -PdocFile=/location/of/your/choice/doc.md`
+  - Omit -P to print to stdout
 
-Apart from these generated source files, the Aion Java kernel uses classes from this repository to perform serialization/deserialization.  When this project is built via `./gradlew build`, the resulting jar in `build/lib` contains those classes and also the schema files.  It needs to be copied to this location:
-- https://github.com/aionnetwork/aion/blob/rpc-autogen/lib/AionRpc.jar
+##### Aion Java kernel update workflow
+After you've modified the schema files, you need actually update the Aion Java kernel to reflect those changes.  Run the `/gradlew generateJava -PkernelRoot=/path/to/your/aionkernel` to update the source code of your copy of the Aion Java kernel.  
 
-If you wish to understand how these two classes fit into the kernel, a good place to start is to look at how adjacent classes interact with them.
-##### How do I...
-- If you want to add/edit/delete methods:
-  1. First, Modify the methods list  https://github.com/aionnetwork/AionRpc/blob/master/src/main/resources/methods.txt, then
-  1. Modify https://github.com/aionnetwork/AionRpc/tree/master/src/main/resources/schemas
-  1. Then follow the steps from [Integration](#integration) for these changes to be reflected in the Aion Java kernel.
- - If you want to edit the FreeStyle templates: see https://github.com/aionnetwork/AionRpc/tree/master/src/main/resources/templates
+If you have updated any source code in this repository, you should rebuild this code base and copy the jar into your Java kernel.  `./gradlew build` will build the jar into `build/libs/AionRpc.jar`.  Note that dependencies are not built into this jar.
 
 ## Framework
 The rest of this document explains the Aion RPC Autogeneration framework in detail.  If you're doing something  more complex or need to modify this framework, the following will give you the full explanation of how to write schemas and how Aion's RPC layer is modeled within this framework.
@@ -44,13 +40,14 @@ There are two kinds of RPC types: root types and derived types.  The framework h
 
 There are currently three root types defined by the framework (array and object will be added in the near future):
 
-| RPC type | JSON representation              | Java representation |
-| -------- | -------------------------------- | ------------------- |
-| BOOLEAN  | boolean                          | boolean or Boolean  |
-| DATA     | string with regex constraint     | byte[]              |
-| QUANTITY | string with regex constraint     | BigNumber           |
+| RPC type | JSON representation          | Java representation                |
+| -------- | ---------------------------- | ---------------------------------- |
+| BOOLEAN  | boolean                      | boolean or Boolean                 |
+| DATA     | string with regex constraint | byte[]                             |
+| QUANTITY | string with regex constraint | BigNumber                          |
+| OBJECT   | object                       | none (not allowed to directly use) |
 
-The JSON representation of an RPC type is its canonical representation.   By convention, all root types are defined in the file https://github.com/aionnetwork/AionRpc/blob/master/src/main/resources/schemas/type/root.json.  
+The JSON representation of an RPC type is its canonical representation.   By convention, all root types are defined in the file https://github.com/aionnetwork/AionRpc/blob/master/src/main/resources/schemas/type/root.json.  OBJECT is a special root type -- it cannot be used directly in RPC method request/response parameters; it is intended to be derived into a custom type, which is in turn used in request/response parameters.
 
 ##### Derived types
 
@@ -103,8 +100,6 @@ For requests, the schema must use `{"type": "array"}` .  In specifying its items
 For response, the schema must be a single `$ref` to the value that is being returned, or `{"type":"boolean"}`.
 
 ### Code Generation
-
-Currently, the code generation will output two files, Rpc.java and RpcProcessor2.java.  They are intended to be used within the Aion Java kernel.
 
 ##### Rpc.java
 

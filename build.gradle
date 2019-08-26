@@ -44,8 +44,8 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
-def printStdoutWarning() { 
-            System.err.println """
+task printStdoutWarning() { 
+            print """
 kernelRoot was not specified, so generated sources will be printed to stdout.
 Use -PkernelRoot=/path/to/aion/root to write source files into their expected
 location.  
@@ -57,11 +57,14 @@ task genRpcProcessor(type: JavaExec) {
     main = 'org.aion.api.codegen.GenerateRpcProcessor'
     classpath = sourceSets.main.runtimeClasspath
 
+
     if(project.hasProperty("kernelRoot")) { 
         def subpath = "/modApiServer/src/org/aion/api/server/rpc2/autogen/RpcProcessor2.java"
-        standardOutput = new FileOutputStream(project.getProperty("kernelRoot") + subpath)
+        def file = file(project.getProperty("kernelRoot") + subpath)
+        mkdir file.parent
+        standardOutput = new FileOutputStream(file)
     } else {
-        printStdoutWarning()
+        dependsOn printStdoutWarning
     }
 }
 
@@ -74,7 +77,7 @@ task genRpcInterface(type: JavaExec) {
         def subpath = "/modApiServer/src/org/aion/api/server/rpc2/autogen/Rpc.java"
         standardOutput = new FileOutputStream(project.getProperty("kernelRoot") + subpath)
     } else {
-        printStdoutWarning()
+        dependsOn printStdoutWarning
     }
 }
 
@@ -87,7 +90,7 @@ task genDeserializer(type: JavaExec) {
         def subpath = "/modApiServer/src/org/aion/api/server/rpc2/autogen/TemplatedSerializer.java"
         standardOutput = new FileOutputStream(project.getProperty("kernelRoot") + subpath)
     } else {
-        printStdoutWarning()
+        dependsOn printStdoutWarning
     }
 }
 
@@ -108,7 +111,9 @@ task genExceptions(type: JavaExec) {
 
     if(project.hasProperty("kernelRoot")) { 
         args project.getProperty("kernelRoot")
-    } 
+    } else { 
+        dependsOn printStdoutWarning
+    }
 }
 
 task generateDocs(type: JavaExec) {
@@ -116,12 +121,11 @@ task generateDocs(type: JavaExec) {
     main = 'org.aion.api.codegen.GenerateDocs'
     classpath = sourceSets.main.runtimeClasspath
 
-    //if(project.hasProperty("kernelRoot")) { 
-        //def subpath = "/tmp/doc.md"
-        standardOutput = new FileOutputStream('/tmp/doc.md')
-    //} else {
-    //    printStdoutWarning()
-    //}
+    if(project.hasProperty("docFile")) { 
+        standardOutput = new FileOutputStream(docFile)
+    } else {
+        dependsOn printStdoutWarning
+    }
 }
 
 task generateJava {
@@ -132,9 +136,11 @@ task generateJava {
     dependsOn genExceptions
 }
 
+/*
 jar {
   from sourceSets.main.allSource
 }
+*/
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'

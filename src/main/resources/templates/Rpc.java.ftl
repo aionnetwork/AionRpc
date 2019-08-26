@@ -14,11 +14,10 @@ public interface Rpc {
     ${decl.returnType} ${decl.methodName}(
 <#list decl.args as arg>
         ${arg} var${arg_index}<#if (arg_has_next)>, </#if>
-</#list>    )
+</#list>    )<#if decl.exceptions? size == 0>;</#if>
 <#list decl.exceptions>
-    throws <#items as ex>${ex}RpcException<#if ex_has_next>, </#if></#items>
+    throws <#items as ex>${ex}RpcException<#if ex_has_next>, <#else>;</#if></#items>
 </#list>
-    ;
 
 </#list>
 }

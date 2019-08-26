@@ -57,7 +57,7 @@ public class GenerateDataHolders {
             ftlMap.put("javaClassName", type.getName());
             ftlMap.put("fields", fields);
 
-            System.out.println("// == " + filename + " == ");
+            System.out.println("creating " + filename);
 
             freemarker.getTemplate("RpcDataHolder.java.ftl").process(ftlMap, consoleWriter);
         }

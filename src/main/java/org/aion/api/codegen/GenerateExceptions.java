@@ -51,7 +51,7 @@ public class GenerateExceptions {
             ftlMap.put("message", error.getValue().getMessage());
             ftlMap.put("code", error.getValue().getCode());
 
-            System.out.println("// == " + filename + " == ");
+            System.out.println("creating " + filename);
 
             freemarker.getTemplate("RpcMethodException.java.ftl").process(ftlMap, consoleWriter);
         }

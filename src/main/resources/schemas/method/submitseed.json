@@ -8,15 +8,15 @@
       "items": [
         {
           "$ref": "derived.json#/definitions/DATA64",
-          "description": "seed of block (n+1)"
+          "description": "seed of new block"
         },
         {
           "$ref": "derived.json#/definitions/DATA32",
-          "description": "signing public key of block (n+1)"
+          "description": "signing public key of the new block"
         },
         {
           "$ref": "derived.json#/definitions/DATA32",
-          "description": "coinbase of block (n+1)"
+          "description": "the block rewards address of the new block"
         }
       ],
       "examples": [
@@ -28,6 +28,16 @@
       "examples": [
       ]
     },
-    "errors": {}
+
+    "errors": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "getseed error parameters",
+      "anyOf": [
+        {
+          "description": "Null exeception",
+          "$ref": "errors.json#/definitions/NullReturn"
+        }
+      ]
+    }
   }
 }
